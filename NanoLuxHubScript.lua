@@ -4,7 +4,7 @@ for PlaceID, Execute in pairs(Games) do
     if PlaceID == game.PlaceId then
         game.StarterGui:SetCore("SendNotification", {
         Title = "NanoLux Script Hub";
-        Text = "Script Injected. Please Wait.";
+        Text = "Script Injected/n. Please Wait.";
         Icon = "";
         Duration = "2";})
         loadstring(game:HttpGet(Execute))()
