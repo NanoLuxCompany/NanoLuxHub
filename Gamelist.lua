@@ -14,6 +14,7 @@ local Games = {
   [142823291] = "https://raw.githubusercontent.com/vertex-peak/vertex/refs/heads/main/loadstring",-- Murder Mystery
   [13772394625] = "https://raw.githubusercontent.com/EminenceXLua/Blade-your-Balls/main/BladeBallLoaderV2.lua", -- Blade Ball
   [1537690962] = "https://raw.githubusercontent.com/Chris8889/atlasbss/main/script.lua", -- Bee Swarm Simulator
+  [537413528] = "https://raw.githubusercontent.com/RunDTM/ZeeroxHub/main/Loader.lua", -- Build A Boat For Treasure
 }
 
 return Games
