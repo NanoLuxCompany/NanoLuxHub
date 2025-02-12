@@ -9,7 +9,7 @@ local Games = {
   [10449761463] = "https://raw.githubusercontent.com/AhmadV99/Script-Games/main/The%20Strongest%20Battleground.lua",  -- The Strongest Battlegrounds
   [18901165922] = "https://raw.githubusercontent.com/AhmadV99/Script-Games/main/Pet%20GO.lua", -- Pet GO
   [16732694052] = "https://raw.githubusercontent.com/AhmadV99/Script-Games/main/Fisch.lua", -- Fisch
-  [142823291] = "https://raw.githubusercontent.com/MarsQQ/ScriptHubScripts/master/MM2%20Admin%20Panel",-- Murder Mystery
+  [142823291] = "https://raw.githubusercontent.com/vertex-peak/vertex/refs/heads/main/loadstring",-- Murder Mystery
   [13772394625] = "https://raw.githubusercontent.com/EminenceXLua/Blade-your-Balls/main/BladeBallLoaderV2.lua", -- Blade Ball
 }
 
