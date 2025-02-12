@@ -4,9 +4,12 @@ for PlaceID, Execute in pairs(Games) do
     if PlaceID == game.PlaceId then
         game.StarterGui:SetCore("SendNotification", {
         Title = "NanoLux Script Hub";
-        Text = "Script Injected/n. Please Wait.";
+        Text = "The script is loading, please wait.";
         Icon = "";
-        Duration = "2";})
+        Duration = "3";
+        Button1 = "Okay";})
         loadstring(game:HttpGet(Execute))()
+    else
+        game.Players.LocalPlayer:Kick("This Game dont support NanoLuxHub.")
     end
 end
