@@ -9,7 +9,7 @@ for PlaceID, Execute in pairs(Games) do
         Duration = "3";
         Button1 = "Okay";})
         loadstring(game:HttpGet(Execute))()
-    else
-        game.Players.LocalPlayer:Kick("There is no script added to this game yet. Please wait. Best regards, NanoLuxHub.")
+  --  else
+       -- game.Players.LocalPlayer:Kick("There is no script added to this game yet. Please wait. Best regards, NanoLuxHub.")
     end
 end
