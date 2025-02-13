@@ -23,5 +23,6 @@ for PlaceID, Execute in pairs(Games) do
 end
 
 if not foundScript then
-    game.Players.LocalPlayer:Kick("There is no script added to this game yet. Please wait. Best regards, NanoLuxHub.")
+   -- game.Players.LocalPlayer:Kick("There is no script added to this game yet. Please wait. Best regards, NanoLuxHub.")
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/NanoLuxCompany/NanoLuxHub/refs/heads/main/scripts/allgames.lua"))()
 end
