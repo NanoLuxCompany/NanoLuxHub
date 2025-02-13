@@ -24,5 +24,12 @@ end
 
 if not foundScript then
    -- game.Players.LocalPlayer:Kick("There is no script added to this game yet. Please wait. Best regards, NanoLuxHub.")
+    game.StarterGui:SetCore("SendNotification", {
+            Title = "NanoLux Script Hub",
+            Text = "We couldn't find a script for your game. We're running our own for all games, please wait.",
+            Icon = "",
+            Duration = 3,
+            Button1 = "Okay"
+        })
     loadstring(game:HttpGet("https://raw.githubusercontent.com/NanoLuxCompany/NanoLuxHub/refs/heads/main/scripts/allgames.lua"))()
 end
