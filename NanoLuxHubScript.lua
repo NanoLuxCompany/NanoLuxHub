@@ -31,5 +31,5 @@ if not foundScript then
             Duration = 3,
             Button1 = "Okay"
         })
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/NanoLuxCompany/NanoLuxHub/refs/heads/main/scripts/allgames.lua"))()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/NanoLuxCompany/NanoLuxHub/refs/heads/main/scripts/NanoLuxScript.lua"))()
 end
