@@ -4,11 +4,21 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
+local MarketplaceService = game:GetService("MarketplaceService")
 
 local Plr = Players.LocalPlayer
 local Clipon = false
 local WallhackEnabled = false
 local Minimized = false
+
+local gamepassIds = {
+    [5] = "1069279752",  
+    [10] = "1069327574",  
+    [50] = "1070128448",  
+    [100] = "1069367617", 
+    [1000] = "1069922853" 
+}
+
 
 -- GUI
 local NanoLuxScriptHub = Instance.new("ScreenGui")
@@ -28,6 +38,10 @@ local WalkSpeedLabel = Instance.new("TextLabel")
 local TeleportInput = Instance.new("TextBox")
 local TeleportButton = Instance.new("TextButton")
 local TeleportCorner = Instance.new("UICorner")
+local RobuxDropDown = Instance.new("TextButton")
+local RobuxDropDownCorner = Instance.new("UICorner")
+local RobuxDropDownList = Instance.new("Frame")
+local RobuxDropDownListLayout = Instance.new("UIListLayout")
 
 NanoLuxScriptHub.Name = "NanoLuxScriptHub"
 NanoLuxScriptHub.Parent = CoreGui
@@ -38,7 +52,7 @@ BG.Parent = NanoLuxScriptHub
 BG.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 BG.BackgroundTransparency = 0.5
 BG.Position = UDim2.new(0.15, 0, 0.75, 0)
-BG.Size = UDim2.new(0, 200, 0, 180)
+BG.Size = UDim2.new(0, 200, 0, 200)
 BG.Active = true
 BG.Draggable = true
 
@@ -85,7 +99,7 @@ CloseButton.TextSize = 18
 ToggleNoclip.Parent = BG
 ToggleNoclip.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 ToggleNoclip.BackgroundTransparency = 0.6
-ToggleNoclip.Position = UDim2.new(0.15, 0, 0.2, 0)
+ToggleNoclip.Position = UDim2.new(0.15, 0, 0.15, 0)
 ToggleNoclip.Size = UDim2.new(0, 150, 0, 25)
 ToggleNoclip.Font = Enum.Font.SourceSans
 ToggleNoclip.Text = "Noclip (C)"
@@ -98,7 +112,7 @@ ToggleNoclipCorner.CornerRadius = UDim.new(0, 8)
 ToggleWallhack.Parent = BG
 ToggleWallhack.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 ToggleWallhack.BackgroundTransparency = 0.6
-ToggleWallhack.Position = UDim2.new(0.15, 0, 0.4, 0)
+ToggleWallhack.Position = UDim2.new(0.15, 0, 0.3, 0)
 ToggleWallhack.Size = UDim2.new(0, 150, 0, 25)
 ToggleWallhack.Font = Enum.Font.SourceSans
 ToggleWallhack.Text = "Wallhack"
@@ -110,7 +124,7 @@ ToggleWallhackCorner.CornerRadius = UDim.new(0, 8)
 -- Walk Speed Input
 WalkSpeedLabel.Parent = BG
 WalkSpeedLabel.BackgroundTransparency = 1
-WalkSpeedLabel.Position = UDim2.new(0.1, 0, 0.6, 0)
+WalkSpeedLabel.Position = UDim2.new(0.1, 0, 0.45, 0)
 WalkSpeedLabel.Size = UDim2.new(0, 80, 0, 20)
 WalkSpeedLabel.Font = Enum.Font.SourceSans
 WalkSpeedLabel.Text = "Walk Speed:"
@@ -120,7 +134,7 @@ WalkSpeedLabel.TextSize = 14
 WalkSpeedInput.Parent = BG
 WalkSpeedInput.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 WalkSpeedInput.BackgroundTransparency = 0.6
-WalkSpeedInput.Position = UDim2.new(0.5, 0, 0.6, 0)
+WalkSpeedInput.Position = UDim2.new(0.5, 0, 0.45, 0)
 WalkSpeedInput.Size = UDim2.new(0, 80, 0, 20)
 WalkSpeedInput.Font = Enum.Font.SourceSans
 WalkSpeedInput.Text = "16"
@@ -132,7 +146,7 @@ TeleportInput.Parent = BG
 TeleportInput.Text = "Ник игрока"
 TeleportInput.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 TeleportInput.BackgroundTransparency = 0.6
-TeleportInput.Position = UDim2.new(0.1, 0, 0.8, 0)
+TeleportInput.Position = UDim2.new(0.1, 0, 0.60, 0)
 TeleportInput.Size = UDim2.new(0, 120, 0, 20)
 TeleportInput.Font = Enum.Font.SourceSans
 TeleportInput.PlaceholderText = "Укажите ник игрока"
@@ -142,7 +156,7 @@ TeleportInput.TextSize = 14
 TeleportButton.Parent = BG
 TeleportButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 TeleportButton.BackgroundTransparency = 0.6
-TeleportButton.Position = UDim2.new(0.72, 0, 0.8, 0)
+TeleportButton.Position = UDim2.new(0.72, 0, 0.60, 0)
 TeleportButton.Size = UDim2.new(0, 50, 0, 20)
 TeleportButton.Font = Enum.Font.SourceSans
 TeleportButton.Text = "ТП"
@@ -161,7 +175,82 @@ WalkSpeedInput.ZIndex = 1
 TeleportInput.ZIndex = 1
 TeleportButton.ZIndex = 1
 
+local RobuxDropDown = Instance.new("TextButton")
+local RobuxDropDownCorner = Instance.new("UICorner")
+local RobuxDropDownList = Instance.new("Frame")
+local RobuxDropDownListLayout = Instance.new("UIListLayout")
+
+RobuxDropDown.Name = "RobuxDropDown"
+RobuxDropDown.Parent = BG
+RobuxDropDown.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+RobuxDropDown.BackgroundTransparency = 0.6
+RobuxDropDown.Position = UDim2.new(0.1, 0, 0.74, 0)
+RobuxDropDown.Size = UDim2.new(0, 100, 0, 25)
+RobuxDropDown.Font = Enum.Font.SourceSans
+RobuxDropDown.Text = "Выбрать"
+RobuxDropDown.TextColor3 = Color3.new(1, 1, 1)
+RobuxDropDown.TextSize = 14
+RobuxDropDown.ZIndex = 1
+
+RobuxDropDownCorner.Parent = RobuxDropDown
+RobuxDropDownCorner.CornerRadius = UDim.new(0, 8)
+
+RobuxDropDownList.Name = "RobuxDropDownList"
+RobuxDropDownList.Parent = RobuxDropDown
+RobuxDropDownList.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+RobuxDropDownList.BackgroundTransparency = 0.5
+RobuxDropDownList.Position = UDim2.new(0, 0, 1, 5)
+RobuxDropDownList.Size = UDim2.new(1, 0, 0, 0)
+RobuxDropDownList.Visible = false
+RobuxDropDownList.ZIndex = 2
+
+RobuxDropDownListLayout.Parent = RobuxDropDownList
+RobuxDropDownListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+-- Создание кнопки "donate ♥"
+local DonateButton = Instance.new("TextButton")
+local DonateButtonCorner = Instance.new("UICorner")
+
+DonateButton.Name = "DonateButton"
+DonateButton.Parent = BG
+DonateButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+DonateButton.BackgroundTransparency = 0.6
+DonateButton.Position = UDim2.new(0.6, 0, 0.74, 0)
+DonateButton.Size = UDim2.new(0, 70, 0, 25)
+DonateButton.Font = Enum.Font.SourceSans
+DonateButton.Text = "donate ♥"
+DonateButton.TextColor3 = Color3.new(1, 1, 1)
+DonateButton.TextSize = 14
+DonateButton.ZIndex = 1
+
+DonateButtonCorner.Parent = DonateButton
+DonateButtonCorner.CornerRadius = UDim.new(0, 8)
+
 -- Functions
+local function createRobuxOption(amount)
+    local option = Instance.new("TextButton")
+    option.Name = "RobuxOption" .. amount
+    option.Parent = RobuxDropDownList
+    option.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    option.BackgroundTransparency = 0.6
+    option.Size = UDim2.new(1, 0, 0, 25)
+    option.Font = Enum.Font.SourceSans
+    option.Text = tostring(amount) .. " Robux"
+    option.TextColor3 = Color3.new(1, 1, 1)
+    option.TextSize = 14
+    option.ZIndex = 3
+
+    option.MouseButton1Click:Connect(function()
+        RobuxDropDown.Text = option.Text
+        RobuxDropDownList.Visible = false
+    end)
+end
+
+local robuxAmounts = {5, 10, 50, 100, 1000}
+for _, amount in ipairs(robuxAmounts) do
+    createRobuxOption(amount)
+end
+
 local function noclip()
     Clipon = not Clipon
     if Clipon then
@@ -227,6 +316,25 @@ end)
 
 WalkSpeedInput.FocusLost:Connect(function()
     Plr.Character.Humanoid.WalkSpeed = tonumber(WalkSpeedInput.Text) or 16
+end)
+
+RobuxDropDown.MouseButton1Click:Connect(function()
+    RobuxDropDownList.Visible = not RobuxDropDownList.Visible
+end)
+
+DonateButton.MouseButton1Click:Connect(function()
+    local selectedAmount = tonumber(string.match(RobuxDropDown.Text, "%d+"))
+    if selectedAmount and gamepassIds[selectedAmount] then
+        MarketplaceService:PromptGamePassPurchase(Plr, gamepassIds[selectedAmount])
+    else
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "NanoLux Script Hub",
+            Text = "Please choose the correct amount of robux. Thanks in advance.",
+            Icon = "",
+            Duration = 3,
+            Button1 = "Okay"
+        })
+    end
 end)
 
 CloseButton.MouseButton1Click:Connect(function()
