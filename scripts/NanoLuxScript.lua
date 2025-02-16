@@ -11,14 +11,21 @@ local Clipon = false
 local WallhackEnabled = false
 local Minimized = false
 
-local gamepassIds = {
-    [5] = "1069279752",  
-    [10] = "1069327574",  
-    [50] = "1070128448",  
-    [100] = "1069367617", 
-    [1000] = "1069922853" 
-}
-
+local function getGamepassId(amount)
+    if amount == 5 then
+        return "1069279752"
+    elseif amount == 10 then
+        return "1069327574"
+    elseif amount == 50 then
+        return "1070128448"
+    elseif amount == 100 then
+        return "1069367617"
+    elseif amount == 1000 then
+        return "1069922853"
+    else
+        return nil
+    end
+end
 
 -- GUI
 local NanoLuxScriptHub = Instance.new("ScreenGui")
@@ -324,8 +331,10 @@ end)
 
 DonateButton.MouseButton1Click:Connect(function()
     local selectedAmount = tonumber(string.match(RobuxDropDown.Text, "%d+"))
-    if selectedAmount and gamepassIds[selectedAmount] then
-        MarketplaceService:PromptGamePassPurchase(Plr, gamepassIds[selectedAmount])
+    local gamepassId = getGamepassId(selectedAmount)
+    
+    if gamepassId then
+        MarketplaceService:PromptGamePassPurchase(Plr, gamepassId)
     else
         game.StarterGui:SetCore("SendNotification", {
             Title = "NanoLux Script Hub",
@@ -336,6 +345,7 @@ DonateButton.MouseButton1Click:Connect(function()
         })
     end
 end)
+
 
 CloseButton.MouseButton1Click:Connect(function()
     NanoLuxScriptHub:Destroy()
