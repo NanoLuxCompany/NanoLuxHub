@@ -12,9 +12,11 @@ local Minimized = false
 
 -- GUI
 local NanoLuxScriptHub = Instance.new("ScreenGui")
+local BackgroundImage = Instance.new("ImageLabel")
 local BG = Instance.new("Frame")
 local UICorner = Instance.new("UICorner")
 local UICorner1 = Instance.new("UICorner")
+local UICorner2 = Instance.new("UICorner")
 local Title = Instance.new("TextLabel")
 local CloseButton = Instance.new("TextButton")
 local ToggleNoclip = Instance.new("TextButton")
@@ -43,11 +45,21 @@ BG.Draggable = true
 UICorner.Parent = BG
 UICorner.CornerRadius = UDim.new(0, 10)
 
+BackgroundImage.Name = "BackgroundImage"
+BackgroundImage.Parent = BG
+BackgroundImage.BackgroundTransparency = 1
+BackgroundImage.Size = UDim2.new(1, 0, 1, 0)
+BackgroundImage.Position = UDim2.new(0, 0, 0, 0)
+BackgroundImage.Image = "rbxassetid://77409177629840"
+BackgroundImage.ScaleType = Enum.ScaleType.Crop
+BackgroundImage.ZIndex = 0
+UICorner2.Parent = BackgroundImage
+UICorner2.CornerRadius = UDim.new(0, 10)
+
 -- Title
 Title.Name = "Title"
 Title.Parent = BG
-Title.BackgroundColor3 = Color3.fromRGB(90, 0, 180)
-Title.BackgroundTransparency = 0.8
+Title.BackgroundTransparency = 1
 Title.Size = UDim2.new(1, 0, 0, 25)
 Title.Font = Enum.Font.SourceSans
 Title.Text = "NanoLux Script Hub"
@@ -71,7 +83,8 @@ CloseButton.TextSize = 18
 
 -- Noclip Toggle
 ToggleNoclip.Parent = BG
-ToggleNoclip.BackgroundColor3 = Color3.fromRGB(90, 0, 180)
+ToggleNoclip.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+ToggleNoclip.BackgroundTransparency = 0.6
 ToggleNoclip.Position = UDim2.new(0.15, 0, 0.2, 0)
 ToggleNoclip.Size = UDim2.new(0, 150, 0, 25)
 ToggleNoclip.Font = Enum.Font.SourceSans
@@ -83,7 +96,8 @@ ToggleNoclipCorner.CornerRadius = UDim.new(0, 8)
 
 -- Wallhack Toggle
 ToggleWallhack.Parent = BG
-ToggleWallhack.BackgroundColor3 = Color3.fromRGB(90, 0, 180)
+ToggleWallhack.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+ToggleWallhack.BackgroundTransparency = 0.6
 ToggleWallhack.Position = UDim2.new(0.15, 0, 0.4, 0)
 ToggleWallhack.Size = UDim2.new(0, 150, 0, 25)
 ToggleWallhack.Font = Enum.Font.SourceSans
@@ -104,7 +118,8 @@ WalkSpeedLabel.TextColor3 = Color3.new(1, 1, 1)
 WalkSpeedLabel.TextSize = 14
 
 WalkSpeedInput.Parent = BG
-WalkSpeedInput.BackgroundColor3 = Color3.fromRGB(90, 0, 180)
+WalkSpeedInput.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+WalkSpeedInput.BackgroundTransparency = 0.6
 WalkSpeedInput.Position = UDim2.new(0.5, 0, 0.6, 0)
 WalkSpeedInput.Size = UDim2.new(0, 80, 0, 20)
 WalkSpeedInput.Font = Enum.Font.SourceSans
@@ -114,16 +129,19 @@ WalkSpeedInput.TextSize = 14
 
 -- Teleport Input
 TeleportInput.Parent = BG
-TeleportInput.BackgroundColor3 = Color3.fromRGB(90, 0, 180)
+TeleportInput.Text = "Ник игрока"
+TeleportInput.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+TeleportInput.BackgroundTransparency = 0.6
 TeleportInput.Position = UDim2.new(0.1, 0, 0.8, 0)
 TeleportInput.Size = UDim2.new(0, 120, 0, 20)
 TeleportInput.Font = Enum.Font.SourceSans
-TeleportInput.PlaceholderText = "Ник игрока"
+TeleportInput.PlaceholderText = "Укажите ник игрока"
 TeleportInput.TextColor3 = Color3.new(1, 1, 1)
 TeleportInput.TextSize = 14
 
 TeleportButton.Parent = BG
-TeleportButton.BackgroundColor3 = Color3.fromRGB(90, 0, 180)
+TeleportButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+TeleportButton.BackgroundTransparency = 0.6
 TeleportButton.Position = UDim2.new(0.72, 0, 0.8, 0)
 TeleportButton.Size = UDim2.new(0, 50, 0, 20)
 TeleportButton.Font = Enum.Font.SourceSans
@@ -132,6 +150,16 @@ TeleportButton.TextColor3 = Color3.new(1, 1, 1)
 TeleportButton.TextSize = 14
 TeleportCorner.Parent = TeleportButton
 TeleportCorner.CornerRadius = UDim.new(0, 8)
+
+-- Index gui
+Title.ZIndex = 1
+CloseButton.ZIndex = 1
+ToggleNoclip.ZIndex = 1
+ToggleWallhack.ZIndex = 1
+WalkSpeedLabel.ZIndex = 1
+WalkSpeedInput.ZIndex = 1
+TeleportInput.ZIndex = 1
+TeleportButton.ZIndex = 1
 
 -- Functions
 local function noclip()
