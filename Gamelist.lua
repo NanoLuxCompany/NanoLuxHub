@@ -13,9 +13,9 @@ local Games = {
   [3297964905] = "https://raw.githubusercontent.com/vertex-peak/vertex/refs/heads/main/loadstring", -- Оружие
   [142823291] = "https://raw.githubusercontent.com/vertex-peak/vertex/refs/heads/main/loadstring",-- Murder Mystery
   [13772394625] = "https://raw.githubusercontent.com/SoyAdriYT/Bakugan/refs/heads/main/Bakugan.lua", -- Blade Ball
-  [1537690962] = "https://raw.githubusercontent.com/Chris8889/atlasbss/main/script.lua", -- Bee Swarm Simulator
   [537413528] = "https://raw.githubusercontent.com/RunDTM/ZeeroxHub/main/Loader.lua", -- Build A Boat For Treasure
   [8737602449] = "https://raw.githubusercontent.com/CF-Trail/tzechco-PlsDonateAutofarmBackup/main/old.lua", -- Please Donate
+  [109983668079237] = "https://raw.githubusercontent.com/gumanba/Scripts/main/StealaBrainrot", -- Steal A BrainRot
 }
 
 return Games
