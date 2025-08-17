@@ -9,6 +9,21 @@ local Games = {
   [10449761463] = "https://raw.githubusercontent.com/AhmadV99/Script-Games/main/The%20Strongest%20Battleground.lua",  -- The Strongest Battlegrounds
   [18901165922] = "https://raw.githubusercontent.com/AhmadV99/Script-Games/main/Pet%20GO.lua", -- Pet GO
   [16732694052] = "https://raw.githubusercontent.com/AhmadV99/Script-Games/main/Fisch.lua", -- Fisch
+  [72907489978215] = "https://raw.githubusercontent.com/AhmadV99/Script-Games/main/Fisch.lua", -- 2 Sea Fisch
+  [116495829188952] = "https://raw.githubusercontent.com/AhmadV99/Script-Games/refs/heads/main/Dead%20Rails.lua", -- Dead Rails
+  [70876832253163] = "https://raw.githubusercontent.com/AhmadV99/Script-Games/refs/heads/main/Dead%20Rails.lua", -- Dead Rails
+  [125723653259639] = "https://raw.githubusercontent.com/triquqd717/main/refs/heads/main/other/DrillDiggingSimulator.lua", -- Drill Digging Simulator
+  [87039211657390] = "https://raw.githubusercontent.com/AhmadV99/Script-Games/refs/heads/main/Arise%20Crossover.lua", -- Arise Crossover
+  [128336380114944] = "https://raw.githubusercontent.com/AhmadV99/Script-Games/refs/heads/main/Arise%20Crossover.lua", -- Arise Crossover | Dungeon
+  [116614712661486] = "https://raw.githubusercontent.com/AhmadV99/Script-Games/refs/heads/main/Arise%20Crossover.lua", -- Arise Crossover | AFK Reward
+  [85896571713843] = "https://raw.githubusercontent.com/AhmadV99/Script-Games/refs/heads/main/Bubble%20Gum%20Simulator%20INFINITY.lua", -- Bubble Gum Simulator INFINITY
+  [126884695634066] = "https://raw.githubusercontent.com/AhmadV99/Script-Games/refs/heads/main/Grow%20a%20Garden.lua", -- Grow a Garden
+  [91867617264223] = "https://raw.githubusercontent.com/AhmadV99/Script-Games/refs/heads/main/Grow%20a%20Garden.lua", -- Grow a Garden 1
+  [126244816328678] = "https://raw.githubusercontent.com/AhmadV99/Script-Games/refs/heads/main/Dig.lua", -- Dig
+  [79546208627805] = "https://raw.githubusercontent.com/AhmadV99/Script-Games/refs/heads/main/99%20Nights%20in%20the%20Forest.lua", -- 99 Nights in the Forest
+  [126509999114328] = "https://raw.githubusercontent.com/AhmadV99/Script-Games/refs/heads/main/99%20Nights%20in%20the%20Forest.lua", -- 99 Nights in the Forest 1
+  [99567941238278] = "https://raw.githubusercontent.com/AhmadV99/Script-Games/refs/heads/main/Ink%20Game.lua", -- Ink Game
+  [125009265613167] = "https://raw.githubusercontent.com/AhmadV99/Script-Games/refs/heads/main/Ink%20Game.lua", -- Ink Game 1
   [286090429] = "https://raw.githubusercontent.com/vertex-peak/vertex/refs/heads/main/loadstring", -- Арсенал
   [3297964905] = "https://raw.githubusercontent.com/vertex-peak/vertex/refs/heads/main/loadstring", -- Оружие
   [142823291] = "https://raw.githubusercontent.com/vertex-peak/vertex/refs/heads/main/loadstring",-- Murder Mystery
@@ -18,7 +33,7 @@ local Games = {
   [7709344486] = "https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua", -- Steal A BrainRot
   [6516141723] = "https://raw.githubusercontent.com/DarkDoorsKing/Doors/main/Main", -- Doors Lobby
   [6839171747] = "https://raw.githubusercontent.com/DarkDoorsKing/Doors/main/Main", -- Doors Game
-  [7018190066] = "https://raw.githubusercontent.com/tbao143/thaibao/refs/heads/main/TbaoHubDeadRails", -- Dead Rails Script
+  [1016936714] = "https://raw.githubusercontent.com/NukeVsCity/Scripts2024/main/ybaredguiforpc", -- Your Bizarre Adventure
 }
 
 return Games
