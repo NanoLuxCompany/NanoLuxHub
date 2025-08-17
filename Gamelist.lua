@@ -15,10 +15,10 @@ local Games = {
   [13772394625] = "https://raw.githubusercontent.com/SoyAdriYT/Bakugan/refs/heads/main/Bakugan.lua", -- Blade Ball
   [537413528] = "https://raw.githubusercontent.com/RunDTM/ZeeroxHub/main/Loader.lua", -- Build A Boat For Treasure
   [8737602449] = "https://raw.githubusercontent.com/CF-Trail/tzechco-PlsDonateAutofarmBackup/main/old.lua", -- Please Donate
-  [109983668079237] = "https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua", -- Steal A BrainRot
+  [7709344486] = "https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua", -- Steal A BrainRot
   [6516141723] = "https://raw.githubusercontent.com/DarkDoorsKing/Doors/main/Main", -- Doors Lobby
   [6839171747] = "https://raw.githubusercontent.com/DarkDoorsKing/Doors/main/Main", -- Doors Game
-  [116495829188952] = "https://raw.githubusercontent.com/tbao143/thaibao/refs/heads/main/TbaoHubDeadRails", -- Dead Rails Script
+  [7018190066] = "https://raw.githubusercontent.com/tbao143/thaibao/refs/heads/main/TbaoHubDeadRails", -- Dead Rails Script
 }
 
 return Games
