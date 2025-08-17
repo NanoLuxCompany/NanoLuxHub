@@ -34,6 +34,7 @@ local Games = {
   [6516141723] = "https://raw.githubusercontent.com/DarkDoorsKing/Doors/main/Main", -- Doors Lobby
   [6839171747] = "https://raw.githubusercontent.com/DarkDoorsKing/Doors/main/Main", -- Doors Game
   [2809202155] = "https://raw.githubusercontent.com/NukeVsCity/Scripts2024/main/ybaredguiforpc", -- Your Bizarre Adventure
+  [4639625707] = "https://raw.githubusercontent.com/ScarletLAB/scarlet/main/wtyc/main.lua", -- War Tycoon
 }
 
 return Games
