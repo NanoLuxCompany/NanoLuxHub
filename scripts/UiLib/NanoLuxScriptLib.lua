@@ -756,10 +756,10 @@ function Library:Create(xHubName,xGameName)
             DropdownButton.ZIndex = 13
 
             DropList.Name = "DropList"
-            DropList.Parent = Main
+            DropList.Parent = DropdownFrame
             DropList.BackgroundColor3 = Color3.fromRGB(40, 42, 60)
             DropList.BorderSizePixel = 0
-            DropList.Position = UDim2.new(0.244827583, 0, 0.024324324, 0)
+            DropList.Position = UDim2.new(0, 0, 1, 0)
             DropList.Size = UDim2.new(0, 408, 0, 0)
             DropList.ScrollBarThickness = 5
             DropList.Visible = false
@@ -779,16 +779,7 @@ function Library:Create(xHubName,xGameName)
                 DropList.Size = UDim2.new(0, 408, 0, maxHeight)
             end
 
-            local function updateDropListPosition()
-                if opened then
-                    local dropdownAbsolutePos = DropdownFrame.AbsolutePosition
-                    local dropdownAbsoluteSize = DropdownFrame.AbsoluteSize
-                    DropList.Position = UDim2.new(0, dropdownAbsolutePos.X, 0, dropdownAbsolutePos.Y + dropdownAbsoluteSize.Y)
-                end
-            end
-
             DropListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateDropListSize)
-            Main:GetPropertyChangedSignal("Position"):Connect(updateDropListPosition)
 
             DropdownButton.MouseEnter:Connect(function()
                 game:GetService("TweenService"):Create(DropdownFrame, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
@@ -815,7 +806,6 @@ function Library:Create(xHubName,xGameName)
                     DropList.Visible = false
                 else 
                     opened = true
-                    updateDropListPosition()
                     DropList.Visible = true
                     updateDropListSize()
                     game:GetService("TweenService"):Create(DropdownIcon, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
