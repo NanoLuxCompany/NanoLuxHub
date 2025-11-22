@@ -506,11 +506,11 @@ function Library:Create(xHubName,xGameName)
             SliderValue.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             SliderValue.BackgroundTransparency = 1.000
             SliderValue.BorderSizePixel = 0
-            SliderValue.TextTransparency = 1.000
+            SliderValue.TextTransparency = 0.000
             SliderValue.Position = UDim2.new(0.802061796, 0, 0, 0)
             SliderValue.Size = UDim2.new(0, 80, 0, 26)
             SliderValue.Font = Enum.Font.Gotham
-            SliderValue.Text = "Value"
+            SliderValue.Text = tostring(Min)
             SliderValue.TextColor3 = Color3.fromRGB(255, 255, 255)
             SliderValue.TextSize = 16.000
             SliderValue.TextXAlignment = Enum.TextXAlignment.Right
@@ -521,13 +521,10 @@ function Library:Create(xHubName,xGameName)
 
             local ms = game.Players.LocalPlayer:GetMouse()
             local uis = game:GetService("UserInputService")
-            local Value
+            local Value = Min
             local mouse = game:GetService("Players").LocalPlayer:GetMouse();
 
             SliderButton.MouseButton1Down:Connect(function()
-                game:GetService("TweenService"):Create(SliderValue, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
-                    TextTransparency = 0
-                }):Play()
                 Value = math.floor((((tonumber(Max) - tonumber(Min)) / 389) * SliderTrail.AbsoluteSize.X) + tonumber(Min)) or 0
                 pcall(function()
                     Callback(Value)
@@ -548,10 +545,6 @@ function Library:Create(xHubName,xGameName)
                             Callback(Value)
                         end)
                         SliderValue.Text = Value
-                        game:GetService("TweenService"):Create(SliderValue, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
-                            TextTransparency = 1
-                        }):Play()
-                        SliderTrail:TweenSize(UDim2.new(0, math.clamp(mouse.X - SliderTrail.AbsolutePosition.X, 0, 389), 0, 10), "InOut", "Linear", 0.05, true)
                         moveconnection:Disconnect()
                         releaseconnection:Disconnect()
                     end
@@ -763,10 +756,10 @@ function Library:Create(xHubName,xGameName)
             DropdownButton.ZIndex = 13
 
             DropList.Name = "DropList"
-            DropList.Parent = ScreenGui
+            DropList.Parent = Main
             DropList.BackgroundColor3 = Color3.fromRGB(40, 42, 60)
             DropList.BorderSizePixel = 0
-            DropList.Position = UDim2.new(0, DropdownFrame.AbsolutePosition.X, 0, DropdownFrame.AbsolutePosition.Y + DropdownFrame.AbsoluteSize.Y)
+            DropList.Position = UDim2.new(0.244827583, 0, 0.024324324, 0)
             DropList.Size = UDim2.new(0, 408, 0, 0)
             DropList.ScrollBarThickness = 5
             DropList.Visible = false
@@ -786,7 +779,16 @@ function Library:Create(xHubName,xGameName)
                 DropList.Size = UDim2.new(0, 408, 0, maxHeight)
             end
 
+            local function updateDropListPosition()
+                if opened then
+                    local dropdownAbsolutePos = DropdownFrame.AbsolutePosition
+                    local dropdownAbsoluteSize = DropdownFrame.AbsoluteSize
+                    DropList.Position = UDim2.new(0, dropdownAbsolutePos.X, 0, dropdownAbsolutePos.Y + dropdownAbsoluteSize.Y)
+                end
+            end
+
             DropListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateDropListSize)
+            Main:GetPropertyChangedSignal("Position"):Connect(updateDropListPosition)
 
             DropdownButton.MouseEnter:Connect(function()
                 game:GetService("TweenService"):Create(DropdownFrame, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
@@ -813,7 +815,7 @@ function Library:Create(xHubName,xGameName)
                     DropList.Visible = false
                 else 
                     opened = true
-                    DropList.Position = UDim2.new(0, DropdownFrame.AbsolutePosition.X, 0, DropdownFrame.AbsolutePosition.Y + DropdownFrame.AbsoluteSize.Y)
+                    updateDropListPosition()
                     DropList.Visible = true
                     updateDropListSize()
                     game:GetService("TweenService"):Create(DropdownIcon, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
