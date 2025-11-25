@@ -9,12 +9,6 @@ function Library:Toggle()
     end
 end
 
-function Library:Close()
-    if game.CoreGui:FindFirstChild(LibraryName) then
-        game.CoreGui:FindFirstChild(LibraryName):Destroy()
-    end
-end
-
 function Library:Drag(obj)
     local UserInputService = game:GetService("UserInputService")
     
@@ -35,7 +29,7 @@ function Library:Drag(obj)
             dragging = true
             dragStart = input.Position
             startPos = gui.Position
-
+    
             input.Changed:Connect(function()
                 if input.UserInputState == Enum.UserInputState.End then
                     dragging = false
@@ -87,7 +81,7 @@ function Library:Create(xHubName,xGameName)
     Main.Parent = ScreenGui
     Main.BackgroundColor3 = Color3.fromRGB(31, 30, 46)
     Main.Position = UDim2.new(0.278277636, 0, 0.281287253, 0)
-    Main.Size = UDim2.new(0, 580, 0, 420)
+    Main.Size = UDim2.new(0, 580, 0, 370)
 
     MainCorner.CornerRadius = UDim.new(0, 12)
     MainCorner.Name = "MainCorner"
@@ -96,7 +90,7 @@ function Library:Create(xHubName,xGameName)
     Sidebar.Name = "Sidebar"
     Sidebar.Parent = Main
     Sidebar.BackgroundColor3 = Color3.fromRGB(40, 42, 60)
-    Sidebar.Size = UDim2.new(0, 140, 0, 420)
+    Sidebar.Size = UDim2.new(0, 140, 0, 370)
 
     SidebarCorner.Name = "SidebarCorner"
     SidebarCorner.Parent = Sidebar
@@ -106,7 +100,7 @@ function Library:Create(xHubName,xGameName)
     Filler.BackgroundColor3 = Color3.fromRGB(40, 42, 60)
     Filler.BorderSizePixel = 0
     Filler.Position = UDim2.new(0.930769145, 0, 0, 0)
-    Filler.Size = UDim2.new(0, 9, 0, 420)
+    Filler.Size = UDim2.new(0, 9, 0, 370)
 
     HubName.Name = "HubName"
     HubName.Parent = Sidebar
@@ -133,9 +127,9 @@ function Library:Create(xHubName,xGameName)
     ActualSide.BackgroundTransparency = 1.000
     ActualSide.BorderSizePixel = 0
     ActualSide.Position = UDim2.new(0, 0, 0.172972977, 0)
-    ActualSide.Size = UDim2.new(0, 139, 0, 347)
+    ActualSide.Size = UDim2.new(0, 139, 0, 297)
     ActualSide.CanvasSize = UDim2.new(0,0,0,0)
-    ActualSide.ScrollBarThickness = 8
+    ActualSide.ScrollBarThickness = 0
 
     ActualSideListLayout.Name = "ActualSideListLayout"
     ActualSideListLayout.Parent = ActualSide
@@ -146,7 +140,7 @@ function Library:Create(xHubName,xGameName)
     SideLine.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     SideLine.BorderSizePixel = 0
     SideLine.Position = UDim2.new(1, 0, 0, 0)
-    SideLine.Size = UDim2.new(0, 2, 0, 420)
+    SideLine.Size = UDim2.new(0, 2, 0, 370)
 
     GameName.Name = "GameName"
     GameName.Parent = Sidebar
@@ -166,53 +160,10 @@ function Library:Create(xHubName,xGameName)
     TabHolder.BackgroundTransparency = 1.000
     TabHolder.BorderSizePixel = 0
     TabHolder.Position = UDim2.new(0.244827583, 0, 0.024324324, 0)
-    TabHolder.Size = UDim2.new(0, 438, 0, 402)
+    TabHolder.Size = UDim2.new(0, 438, 0, 352)
 
     Tabs.Name = "Tabs"
     Tabs.Parent = TabHolder
-
-    local CloseButton = Instance.new("TextButton")
-    local MinimizeButton = Instance.new("TextButton")
-
-    CloseButton.Name = "CloseButton"
-    CloseButton.Parent = Main
-    CloseButton.BackgroundColor3 = Color3.fromRGB(255, 59, 59)
-    CloseButton.BorderSizePixel = 0
-    CloseButton.Position = UDim2.new(0.95, 0, 0.01, 0)
-    CloseButton.Size = UDim2.new(0, 20, 0, 20)
-    CloseButton.Font = Enum.Font.Gotham
-    CloseButton.Text = "×"
-    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    CloseButton.TextSize = 16.000
-    CloseButton.ZIndex = 2
-
-    local CloseCorner = Instance.new("UICorner")
-    CloseCorner.CornerRadius = UDim.new(0, 4)
-    CloseCorner.Parent = CloseButton
-
-    MinimizeButton.Name = "MinimizeButton"
-    MinimizeButton.Parent = Main
-    MinimizeButton.BackgroundColor3 = Color3.fromRGB(255, 193, 59)
-    MinimizeButton.BorderSizePixel = 0
-    MinimizeButton.Position = UDim2.new(0.91, 0, 0.01, 0)
-    MinimizeButton.Size = UDim2.new(0, 20, 0, 20)
-    MinimizeButton.Font = Enum.Font.Gotham
-    MinimizeButton.Text = "_"
-    MinimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    MinimizeButton.TextSize = 16.000
-    MinimizeButton.ZIndex = 2
-
-    local MinimizeCorner = Instance.new("UICorner")
-    MinimizeCorner.CornerRadius = UDim.new(0, 4)
-    MinimizeCorner.Parent = MinimizeButton
-
-    CloseButton.MouseButton1Down:Connect(function()
-        Library:Close()
-    end)
-
-    MinimizeButton.MouseButton1Down:Connect(function()
-        Library:Toggle()
-    end)
 
     Library:Drag(Main)
 
@@ -236,8 +187,8 @@ function Library:Create(xHubName,xGameName)
         Tab.Visible = xVisible
         Tab.BackgroundColor3 = Color3.fromRGB(31, 30, 46)
         Tab.BorderSizePixel = 0
-        Tab.Size = UDim2.new(0, 438, 0, 402)
-        Tab.ScrollBarThickness = 8
+        Tab.Size = UDim2.new(0, 438, 0, 352)
+        Tab.ScrollBarThickness = 5
         
         TabListLayout.Name = "TabListLayout"
         TabListLayout.Parent = Tab
@@ -810,7 +761,7 @@ function Library:Create(xHubName,xGameName)
             DropList.BorderSizePixel = 0
             DropList.Position = UDim2.new(0, 0, 1, 0)
             DropList.Size = UDim2.new(0, 408, 0, 0)
-            DropList.ScrollBarThickness = 8
+            DropList.ScrollBarThickness = 5
             DropList.Visible = false
             DropList.ZIndex = 100
             DropList.CanvasSize = UDim2.new(0, 0, 0, 0)
@@ -976,280 +927,8 @@ function Library:Create(xHubName,xGameName)
             
             return DropdownFunction
         end
-
-        function Elements:Colorpicker(Name, DefaultColor, Callback)
-            local Name = Name or "Colorpicker"
-            local DefaultColor = DefaultColor or Color3.fromRGB(255, 255, 255)
-            local Callback = Callback or function() end
-            local CurrentColor = DefaultColor
-            local ColorpickerOpen = false
-
-            local ColorpickerFrame = Instance.new("Frame")
-            local ColorpickerFrameCorner = Instance.new("UICorner")
-            local ColorpickerName = Instance.new("TextLabel")
-            local ColorpickerNamePadding = Instance.new("UIPadding")
-            local ColorpickerButton = Instance.new("TextButton")
-            local ColorpickerButtonCorner = Instance.new("UICorner")
-            local ColorPreview = Instance.new("Frame")
-            local ColorPreviewCorner = Instance.new("UICorner")
-
-            ColorpickerFrame.Name = tostring(Name).."_Colorpicker"
-            ColorpickerFrame.Parent = Tab
-            ColorpickerFrame.BackgroundColor3 = Color3.fromRGB(40, 42, 60)
-            ColorpickerFrame.BorderSizePixel = 0
-            ColorpickerFrame.Size = UDim2.new(0, 408, 0, 35)
-            
-            ColorpickerFrameCorner.Name = "ColorpickerFrameCorner"
-            ColorpickerFrameCorner.Parent = ColorpickerFrame
-            
-            ColorpickerName.Name = "ColorpickerName"
-            ColorpickerName.Parent = ColorpickerFrame
-            ColorpickerName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            ColorpickerName.BackgroundTransparency = 1.000
-            ColorpickerName.BorderSizePixel = 0
-            ColorpickerName.Size = UDim2.new(0, 235, 0, 35)
-            ColorpickerName.Font = Enum.Font.Gotham
-            ColorpickerName.Text = Name
-            ColorpickerName.TextColor3 = Color3.fromRGB(255, 255, 255)
-            ColorpickerName.TextSize = 16.000
-            ColorpickerName.TextXAlignment = Enum.TextXAlignment.Left
-            
-            ColorpickerNamePadding.Name = "ColorpickerNamePadding"
-            ColorpickerNamePadding.Parent = ColorpickerName
-            ColorpickerNamePadding.PaddingLeft = UDim.new(0, 10)
-            
-            ColorpickerButton.Name = "ColorpickerButton"
-            ColorpickerButton.Parent = ColorpickerFrame
-            ColorpickerButton.BackgroundColor3 = Color3.fromRGB(55, 55, 75)
-            ColorpickerButton.Position = UDim2.new(0.610294104, 0, 0.171428576, 0)
-            ColorpickerButton.Size = UDim2.new(0, 150, 0, 23)
-            ColorpickerButton.Font = Enum.Font.Gotham
-            ColorpickerButton.Text = ""
-            ColorpickerButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-            ColorpickerButton.TextSize = 14.000
-            ColorpickerButton.ZIndex = 2
-            
-            ColorpickerButtonCorner.Name = "ColorpickerButtonCorner"
-            ColorpickerButtonCorner.Parent = ColorpickerButton
-
-            ColorPreview.Name = "ColorPreview"
-            ColorPreview.Parent = ColorpickerButton
-            ColorPreview.BackgroundColor3 = CurrentColor
-            ColorPreview.BorderSizePixel = 0
-            ColorPreview.Position = UDim2.new(0.05, 0, 0.15, 0)
-            ColorPreview.Size = UDim2.new(0, 130, 0, 16)
-            
-            ColorPreviewCorner.Name = "ColorPreviewCorner"
-            ColorPreviewCorner.Parent = ColorPreview
-
-            -- Color Picker Window
-            local ColorPickerWindow = Instance.new("Frame")
-            local ColorPickerWindowCorner = Instance.new("UICorner")
-            local ColorPickerTitle = Instance.new("TextLabel")
-            local ColorPickerArea = Instance.new("Frame")
-            local ColorWheel = Instance.new("ImageLabel")
-            local ColorWheelCursor = Instance.new("Frame")
-            local ColorWheelCursorCorner = Instance.new("UICorner")
-            local BrightnessSlider = Instance.new("Frame")
-            local BrightnessSliderCorner = Instance.new("UICorner")
-            local BrightnessGradient = Instance.new("UIGradient")
-            local BrightnessCursor = Instance.new("Frame")
-            local BrightnessCursorCorner = Instance.new("UICorner")
-            local RGBInputs = Instance.new("Frame")
-            local RInput = Instance.new("TextBox")
-            local GInput = Instance.new("TextBox")
-            local BInput = Instance.new("TextBox")
-            local HexInput = Instance.new("TextBox")
-            local ConfirmButton = Instance.new("TextButton")
-            local ConfirmButtonCorner = Instance.new("UICorner")
-
-            ColorPickerWindow.Name = "ColorPickerWindow"
-            ColorPickerWindow.Parent = ColorpickerFrame
-            ColorPickerWindow.BackgroundColor3 = Color3.fromRGB(40, 42, 60)
-            ColorPickerWindow.BorderSizePixel = 0
-            ColorPickerWindow.Position = UDim2.new(0, 0, 1, 5)
-            ColorPickerWindow.Size = UDim2.new(0, 408, 0, 0)
-            ColorPickerWindow.Visible = false
-            ColorPickerWindow.ZIndex = 100
-
-            ColorPickerWindowCorner.Name = "ColorPickerWindowCorner"
-            ColorPickerWindowCorner.Parent = ColorPickerWindow
-
-            ColorPickerTitle.Name = "ColorPickerTitle"
-            ColorPickerTitle.Parent = ColorPickerWindow
-            ColorPickerTitle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            ColorPickerTitle.BackgroundTransparency = 1.000
-            ColorPickerTitle.Size = UDim2.new(0, 408, 0, 25)
-            ColorPickerTitle.Font = Enum.Font.Gotham
-            ColorPickerTitle.Text = "Color Picker"
-            ColorPickerTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-            ColorPickerTitle.TextSize = 16.000
-
-            -- Simplified color picker implementation
-            local function UpdateColor(newColor)
-                CurrentColor = newColor
-                ColorPreview.BackgroundColor3 = newColor
-                pcall(Callback, newColor)
-            end
-
-            ColorpickerButton.MouseButton1Click:Connect(function()
-                ColorpickerOpen = not ColorpickerOpen
-                if ColorpickerOpen then
-                    ColorPickerWindow.Visible = true
-                    game:GetService("TweenService"):Create(ColorPickerWindow, TweenInfo.new(0.2), {
-                        Size = UDim2.new(0, 408, 0, 150)
-                    }):Play()
-                else
-                    game:GetService("TweenService"):Create(ColorPickerWindow, TweenInfo.new(0.2), {
-                        Size = UDim2.new(0, 408, 0, 0)
-                    }):Play()
-                    wait(0.2)
-                    ColorPickerWindow.Visible = false
-                end
-            end)
-
-            -- Simple RGB input implementation
-            local function CreateRGBInput(name, position, defaultValue)
-                local InputFrame = Instance.new("Frame")
-                local InputLabel = Instance.new("TextLabel")
-                local InputBox = Instance.new("TextBox")
-                local InputCorner = Instance.new("UICorner")
-
-                InputFrame.Name = name.."InputFrame"
-                InputFrame.Parent = ColorPickerWindow
-                InputFrame.BackgroundTransparency = 1
-                InputFrame.Position = position
-                InputFrame.Size = UDim2.new(0, 120, 0, 25)
-
-                InputLabel.Name = name.."Label"
-                InputLabel.Parent = InputFrame
-                InputLabel.BackgroundTransparency = 1
-                InputLabel.Size = UDim2.new(0, 30, 0, 25)
-                InputLabel.Font = Enum.Font.Gotham
-                InputLabel.Text = name..":"
-                InputLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-                InputLabel.TextSize = 14.000
-                InputLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-                InputBox.Name = name.."Input"
-                InputBox.Parent = InputFrame
-                InputBox.BackgroundColor3 = Color3.fromRGB(55, 55, 75)
-                InputBox.Position = UDim2.new(0, 35, 0, 0)
-                InputBox.Size = UDim2.new(0, 80, 0, 25)
-                InputBox.Font = Enum.Font.Gotham
-                InputBox.PlaceholderText = defaultValue
-                InputBox.Text = defaultValue
-                InputBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-                InputBox.TextSize = 14.000
-
-                InputCorner.Parent = InputBox
-
-                return InputBox
-            end
-
-            -- Create RGB inputs
-            local RInput = CreateRGBInput("R", UDim2.new(0, 10, 0, 40), "255")
-            local GInput = CreateRGBInput("G", UDim2.new(0, 140, 0, 40), "255")
-            local BInput = CreateRGBInput("B", UDim2.new(0, 270, 0, 40), "255")
-
-            -- Hex input
-            local HexFrame = Instance.new("Frame")
-            HexFrame.Parent = ColorPickerWindow
-            HexFrame.BackgroundTransparency = 1
-            HexFrame.Position = UDim2.new(0, 10, 0, 75)
-            HexFrame.Size = UDim2.new(0, 388, 0, 25)
-
-            local HexLabel = Instance.new("TextLabel")
-            HexLabel.Parent = HexFrame
-            HexLabel.BackgroundTransparency = 1
-            HexLabel.Size = UDim2.new(0, 40, 0, 25)
-            HexLabel.Font = Enum.Font.Gotham
-            HexLabel.Text = "Hex:"
-            HexLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-            HexLabel.TextSize = 14.000
-            HexLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-            local HexInput = Instance.new("TextBox")
-            HexInput.Parent = HexFrame
-            HexInput.BackgroundColor3 = Color3.fromRGB(55, 55, 75)
-            HexInput.Position = UDim2.new(0, 45, 0, 0)
-            HexInput.Size = UDim2.new(0, 100, 0, 25)
-            HexInput.Font = Enum.Font.Gotham
-            HexInput.PlaceholderText = "#FFFFFF"
-            HexInput.Text = "#FFFFFF"
-            HexInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-            HexInput.TextSize = 14.000
-            Instance.new("UICorner", HexInput)
-
-            -- Confirm button
-            ConfirmButton.Name = "ConfirmButton"
-            ConfirmButton.Parent = ColorPickerWindow
-            ConfirmButton.BackgroundColor3 = Color3.fromRGB(55, 74, 251)
-            ConfirmButton.Position = UDim2.new(0, 160, 0, 110)
-            ConfirmButton.Size = UDim2.new(0, 80, 0, 30)
-            ConfirmButton.Font = Enum.Font.Gotham
-            ConfirmButton.Text = "Confirm"
-            ConfirmButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-            ConfirmButton.TextSize = 14.000
-
-            ConfirmButtonCorner.Parent = ConfirmButton
-
-            -- Input handlers
-            local function UpdateFromRGB()
-                local r = math.clamp(tonumber(RInput.Text) or 255, 0, 255)
-                local g = math.clamp(tonumber(GInput.Text) or 255, 0, 255)
-                local b = math.clamp(tonumber(BInput.Text) or 255, 0, 255)
-                
-                RInput.Text = tostring(r)
-                GInput.Text = tostring(g)
-                BInput.Text = tostring(b)
-                
-                local newColor = Color3.fromRGB(r, g, b)
-                HexInput.Text = "#" .. string.format("%02X%02X%02X", r, g, b)
-                UpdateColor(newColor)
-            end
-
-            local function UpdateFromHex()
-                local hex = HexInput.Text:gsub("#", "")
-                if #hex == 6 then
-                    local r = tonumber(hex:sub(1,2), 16) or 255
-                    local g = tonumber(hex:sub(3,4), 16) or 255
-                    local b = tonumber(hex:sub(5,6), 16) or 255
-                    
-                    RInput.Text = tostring(r)
-                    GInput.Text = tostring(g)
-                    BInput.Text = tostring(b)
-                    
-                    local newColor = Color3.fromRGB(r, g, b)
-                    UpdateColor(newColor)
-                end
-            end
-
-            RInput.FocusLost:Connect(UpdateFromRGB)
-            GInput.FocusLost:Connect(UpdateFromRGB)
-            BInput.FocusLost:Connect(UpdateFromRGB)
-            HexInput.FocusLost:Connect(UpdateFromHex)
-
-            ConfirmButton.MouseButton1Click:Connect(function()
-                ColorpickerOpen = false
-                game:GetService("TweenService"):Create(ColorPickerWindow, TweenInfo.new(0.2), {
-                    Size = UDim2.new(0, 408, 0, 0)
-                }):Play()
-                wait(0.2)
-                ColorPickerWindow.Visible = false
-            end)
-
-            -- Set initial values
-            local r, g, b = math.floor(CurrentColor.R * 255), math.floor(CurrentColor.G * 255), math.floor(CurrentColor.B * 255)
-            RInput.Text = tostring(r)
-            GInput.Text = tostring(g)
-            BInput.Text = tostring(b)
-            HexInput.Text = "#" .. string.format("%02X%02X%02X", r, g, b)
-        end
-
         return Elements
     end
     return xTabs
 end
-
 return Library
