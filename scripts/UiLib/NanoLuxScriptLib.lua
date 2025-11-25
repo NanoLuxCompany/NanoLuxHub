@@ -88,7 +88,7 @@ function Library:Create(xHubName,xGameName)
     Main.Parent = ScreenGui
     Main.BackgroundColor3 = Color3.fromRGB(31, 30, 46)
     Main.Position = UDim2.new(0.278277636, 0, 0.281287253, 0)
-    Main.Size = UDim2.new(0, 580, 0, 520)
+    Main.Size = UDim2.new(0, 590, 0, 520)
 
     MainCorner.CornerRadius = UDim.new(0, 12)
     MainCorner.Name = "MainCorner"
@@ -126,7 +126,7 @@ function Library:Create(xHubName,xGameName)
     Line.Parent = Sidebar
     Line.BackgroundColor3 = Color3.fromRGB(75, 75, 75)
     Line.BorderSizePixel = 0
-    Line.Position = UDim2.new(0.0642857179, 0, 0.17, 0) -- Moved lower from 0.148
+    Line.Position = UDim2.new(0.0642857179, 0, 0.2, 0) -- Moved lower from 0.148
     Line.Size = UDim2.new(0, 121, 0, 2)
 
     ActualSide.Name = "ActualSide"
@@ -134,7 +134,7 @@ function Library:Create(xHubName,xGameName)
     ActualSide.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     ActualSide.BackgroundTransparency = 1.000
     ActualSide.BorderSizePixel = 0
-    ActualSide.Position = UDim2.new(0, 0, 0.195, 0) -- Moved lower from 0.172
+    ActualSide.Position = UDim2.new(0, 0, 0.2.2, 0) -- Moved lower from 0.172
     ActualSide.Size = UDim2.new(0, 139, 0, 447) -- Increased height
     ActualSide.CanvasSize = UDim2.new(0,0,0,0)
     ActualSide.ScrollBarThickness = 6 -- Increased scrollbar thickness
@@ -155,7 +155,7 @@ function Library:Create(xHubName,xGameName)
     GameName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     GameName.BackgroundTransparency = 1.000
     GameName.BorderSizePixel = 0
-    GameName.Position = UDim2.new(-0.00714285718, 0, 0.1, 0) -- Moved lower from 0.081
+    GameName.Position = UDim2.new(-0.00714285718, 0, 0.081, 0) -- Moved lower from 0.081
     GameName.Size = UDim2.new(0, 141, 0, 25)
     GameName.Font = Enum.Font.Gotham
     GameName.Text = xGameName
