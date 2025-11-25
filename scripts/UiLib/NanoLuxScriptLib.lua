@@ -83,12 +83,12 @@ function Library:Create(xHubName,xGameName)
     ScreenGui.ResetOnSpawn = false 
     ScreenGui.Name = LibraryName
 
-    -- Increased window height from 370 to 480 (to accommodate buttons at top)
+    -- Increased window height from 480 to 520 (to accommodate buttons at top and content lower)
     Main.Name = "Main"
     Main.Parent = ScreenGui
     Main.BackgroundColor3 = Color3.fromRGB(31, 30, 46)
     Main.Position = UDim2.new(0.278277636, 0, 0.281287253, 0)
-    Main.Size = UDim2.new(0, 580, 0, 480)
+    Main.Size = UDim2.new(0, 580, 0, 520)
 
     MainCorner.CornerRadius = UDim.new(0, 12)
     MainCorner.Name = "MainCorner"
@@ -97,7 +97,7 @@ function Library:Create(xHubName,xGameName)
     Sidebar.Name = "Sidebar"
     Sidebar.Parent = Main
     Sidebar.BackgroundColor3 = Color3.fromRGB(40, 42, 60)
-    Sidebar.Size = UDim2.new(0, 140, 0, 480)
+    Sidebar.Size = UDim2.new(0, 140, 0, 520)
 
     SidebarCorner.Name = "SidebarCorner"
     SidebarCorner.Parent = Sidebar
@@ -107,14 +107,15 @@ function Library:Create(xHubName,xGameName)
     Filler.BackgroundColor3 = Color3.fromRGB(40, 42, 60)
     Filler.BorderSizePixel = 0
     Filler.Position = UDim2.new(0.930769145, 0, 0, 0)
-    Filler.Size = UDim2.new(0, 9, 0, 480)
+    Filler.Size = UDim2.new(0, 9, 0, 520)
 
+    -- Moved HubName and other content lower
     HubName.Name = "HubName"
     HubName.Parent = Sidebar
     HubName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     HubName.BackgroundTransparency = 1.000
     HubName.BorderSizePixel = 0
-    HubName.Position = UDim2.new(0, 0, 0.024324324, 0)
+    HubName.Position = UDim2.new(0, 0, 0.045, 0) -- Moved lower from 0.024
     HubName.Size = UDim2.new(0, 140, 0, 21)
     HubName.Font = Enum.Font.Gotham
     HubName.Text = xHubName
@@ -125,7 +126,7 @@ function Library:Create(xHubName,xGameName)
     Line.Parent = Sidebar
     Line.BackgroundColor3 = Color3.fromRGB(75, 75, 75)
     Line.BorderSizePixel = 0
-    Line.Position = UDim2.new(0.0642857179, 0, 0.148648649, 0)
+    Line.Position = UDim2.new(0.0642857179, 0, 0.17, 0) -- Moved lower from 0.148
     Line.Size = UDim2.new(0, 121, 0, 2)
 
     ActualSide.Name = "ActualSide"
@@ -133,8 +134,8 @@ function Library:Create(xHubName,xGameName)
     ActualSide.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     ActualSide.BackgroundTransparency = 1.000
     ActualSide.BorderSizePixel = 0
-    ActualSide.Position = UDim2.new(0, 0, 0.172972977, 0)
-    ActualSide.Size = UDim2.new(0, 139, 0, 407)
+    ActualSide.Position = UDim2.new(0, 0, 0.195, 0) -- Moved lower from 0.172
+    ActualSide.Size = UDim2.new(0, 139, 0, 447) -- Increased height
     ActualSide.CanvasSize = UDim2.new(0,0,0,0)
     ActualSide.ScrollBarThickness = 6 -- Increased scrollbar thickness
 
@@ -147,14 +148,14 @@ function Library:Create(xHubName,xGameName)
     SideLine.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     SideLine.BorderSizePixel = 0
     SideLine.Position = UDim2.new(1, 0, 0, 0)
-    SideLine.Size = UDim2.new(0, 2, 0, 480)
+    SideLine.Size = UDim2.new(0, 2, 0, 520)
 
     GameName.Name = "GameName"
     GameName.Parent = Sidebar
     GameName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     GameName.BackgroundTransparency = 1.000
     GameName.BorderSizePixel = 0
-    GameName.Position = UDim2.new(-0.00714285718, 0, 0.0810810775, 0)
+    GameName.Position = UDim2.new(-0.00714285718, 0, 0.1, 0) -- Moved lower from 0.081
     GameName.Size = UDim2.new(0, 141, 0, 25)
     GameName.Font = Enum.Font.Gotham
     GameName.Text = xGameName
@@ -166,17 +167,17 @@ function Library:Create(xHubName,xGameName)
     TabHolder.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     TabHolder.BackgroundTransparency = 1.000
     TabHolder.BorderSizePixel = 0
-    TabHolder.Position = UDim2.new(0.244827583, 0, 0.024324324, 0)
-    TabHolder.Size = UDim2.new(0, 438, 0, 462)
+    TabHolder.Position = UDim2.new(0.244827583, 0, 0.045, 0) -- Moved lower from 0.024
+    TabHolder.Size = UDim2.new(0, 438, 0, 502) -- Increased height
 
     Tabs.Name = "Tabs"
     Tabs.Parent = TabHolder
 
-    -- Close Button (moved to very top)
+    -- Close Button (at 0.007)
     CloseButton.Name = "CloseButton"
     CloseButton.Parent = Main
     CloseButton.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
-    CloseButton.Position = UDim2.new(0.95, 0, 0.002, 0) -- Moved much higher
+    CloseButton.Position = UDim2.new(0.95, 0, 0.007, 0) -- Set to 0.007
     CloseButton.Size = UDim2.new(0, 20, 0, 20)
     CloseButton.Font = Enum.Font.Gotham
     CloseButton.Text = "X"
@@ -188,11 +189,11 @@ function Library:Create(xHubName,xGameName)
     CloseButtonCorner.Name = "CloseButtonCorner"
     CloseButtonCorner.Parent = CloseButton
 
-    -- Minimize Button (moved to very top)
+    -- Minimize Button (at 0.007)
     MinimizeButton.Name = "MinimizeButton"
     MinimizeButton.Parent = Main
     MinimizeButton.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
-    MinimizeButton.Position = UDim2.new(0.91, 0, 0.002, 0) -- Moved much higher
+    MinimizeButton.Position = UDim2.new(0.91, 0, 0.007, 0) -- Set to 0.007
     MinimizeButton.Size = UDim2.new(0, 20, 0, 20)
     MinimizeButton.Font = Enum.Font.Gotham
     MinimizeButton.Text = "_"
@@ -260,7 +261,7 @@ function Library:Create(xHubName,xGameName)
         Tab.Visible = xVisible
         Tab.BackgroundColor3 = Color3.fromRGB(31, 30, 46)
         Tab.BorderSizePixel = 0
-        Tab.Size = UDim2.new(0, 438, 0, 462)
+        Tab.Size = UDim2.new(0, 438, 0, 502) -- Increased height
         Tab.ScrollBarThickness = 6 -- Increased scrollbar thickness
         
         TabListLayout.Name = "TabListLayout"
