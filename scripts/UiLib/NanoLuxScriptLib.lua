@@ -83,12 +83,12 @@ function Library:Create(xHubName,xGameName)
     ScreenGui.ResetOnSpawn = false 
     ScreenGui.Name = LibraryName
 
-    -- Increased window height from 370 to 450
+    -- Increased window height from 370 to 470 (to accommodate buttons at top)
     Main.Name = "Main"
     Main.Parent = ScreenGui
     Main.BackgroundColor3 = Color3.fromRGB(31, 30, 46)
     Main.Position = UDim2.new(0.278277636, 0, 0.281287253, 0)
-    Main.Size = UDim2.new(0, 580, 0, 450)
+    Main.Size = UDim2.new(0, 580, 0, 470)
 
     MainCorner.CornerRadius = UDim.new(0, 12)
     MainCorner.Name = "MainCorner"
@@ -97,7 +97,7 @@ function Library:Create(xHubName,xGameName)
     Sidebar.Name = "Sidebar"
     Sidebar.Parent = Main
     Sidebar.BackgroundColor3 = Color3.fromRGB(40, 42, 60)
-    Sidebar.Size = UDim2.new(0, 140, 0, 450)
+    Sidebar.Size = UDim2.new(0, 140, 0, 470)
 
     SidebarCorner.Name = "SidebarCorner"
     SidebarCorner.Parent = Sidebar
@@ -107,7 +107,7 @@ function Library:Create(xHubName,xGameName)
     Filler.BackgroundColor3 = Color3.fromRGB(40, 42, 60)
     Filler.BorderSizePixel = 0
     Filler.Position = UDim2.new(0.930769145, 0, 0, 0)
-    Filler.Size = UDim2.new(0, 9, 0, 450)
+    Filler.Size = UDim2.new(0, 9, 0, 470)
 
     HubName.Name = "HubName"
     HubName.Parent = Sidebar
@@ -134,7 +134,7 @@ function Library:Create(xHubName,xGameName)
     ActualSide.BackgroundTransparency = 1.000
     ActualSide.BorderSizePixel = 0
     ActualSide.Position = UDim2.new(0, 0, 0.172972977, 0)
-    ActualSide.Size = UDim2.new(0, 139, 0, 377)
+    ActualSide.Size = UDim2.new(0, 139, 0, 397)
     ActualSide.CanvasSize = UDim2.new(0,0,0,0)
     ActualSide.ScrollBarThickness = 6 -- Increased scrollbar thickness
 
@@ -147,7 +147,7 @@ function Library:Create(xHubName,xGameName)
     SideLine.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     SideLine.BorderSizePixel = 0
     SideLine.Position = UDim2.new(1, 0, 0, 0)
-    SideLine.Size = UDim2.new(0, 2, 0, 450)
+    SideLine.Size = UDim2.new(0, 2, 0, 470)
 
     GameName.Name = "GameName"
     GameName.Parent = Sidebar
@@ -167,16 +167,16 @@ function Library:Create(xHubName,xGameName)
     TabHolder.BackgroundTransparency = 1.000
     TabHolder.BorderSizePixel = 0
     TabHolder.Position = UDim2.new(0.244827583, 0, 0.024324324, 0)
-    TabHolder.Size = UDim2.new(0, 438, 0, 432)
+    TabHolder.Size = UDim2.new(0, 438, 0, 452)
 
     Tabs.Name = "Tabs"
     Tabs.Parent = TabHolder
 
-    -- Close Button
+    -- Close Button (moved to top)
     CloseButton.Name = "CloseButton"
     CloseButton.Parent = Main
     CloseButton.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
-    CloseButton.Position = UDim2.new(0.95, 0, 0.01, 0)
+    CloseButton.Position = UDim2.new(0.95, 0, 0.005, 0) -- Moved higher
     CloseButton.Size = UDim2.new(0, 20, 0, 20)
     CloseButton.Font = Enum.Font.Gotham
     CloseButton.Text = "X"
@@ -188,11 +188,11 @@ function Library:Create(xHubName,xGameName)
     CloseButtonCorner.Name = "CloseButtonCorner"
     CloseButtonCorner.Parent = CloseButton
 
-    -- Minimize Button
+    -- Minimize Button (moved to top)
     MinimizeButton.Name = "MinimizeButton"
     MinimizeButton.Parent = Main
     MinimizeButton.BackgroundColor3 = Color3.fromRGB(80, 80, 80)
-    MinimizeButton.Position = UDim2.new(0.91, 0, 0.01, 0)
+    MinimizeButton.Position = UDim2.new(0.91, 0, 0.005, 0) -- Moved higher
     MinimizeButton.Size = UDim2.new(0, 20, 0, 20)
     MinimizeButton.Font = Enum.Font.Gotham
     MinimizeButton.Text = "_"
@@ -221,27 +221,9 @@ function Library:Create(xHubName,xGameName)
         }):Play()
     end)
 
-    -- Minimize button functionality
-    local minimized = false
-    local originalSize = Main.Size
-    local minimizedSize = UDim2.new(0, 580, 0, 30)
-
+    -- Minimize button functionality - now does the same as Ctrl (toggle visibility)
     MinimizeButton.MouseButton1Click:Connect(function()
-        minimized = not minimized
-        if minimized then
-            game:GetService("TweenService"):Create(Main, TweenInfo.new(0.2, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
-                Size = minimizedSize
-            }):Play()
-            wait(0.2)
-            TabHolder.Visible = false
-            Sidebar.Visible = false
-        else
-            TabHolder.Visible = true
-            Sidebar.Visible = true
-            game:GetService("TweenService"):Create(Main, TweenInfo.new(0.2, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
-                Size = originalSize
-            }):Play()
-        end
+        Library:Toggle()
     end)
 
     MinimizeButton.MouseEnter:Connect(function()
@@ -278,7 +260,7 @@ function Library:Create(xHubName,xGameName)
         Tab.Visible = xVisible
         Tab.BackgroundColor3 = Color3.fromRGB(31, 30, 46)
         Tab.BorderSizePixel = 0
-        Tab.Size = UDim2.new(0, 438, 0, 432)
+        Tab.Size = UDim2.new(0, 438, 0, 452)
         Tab.ScrollBarThickness = 6 -- Increased scrollbar thickness
         
         TabListLayout.Name = "TabListLayout"
