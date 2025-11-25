@@ -168,7 +168,7 @@ function Library:Create(xHubName,xGameName)
     TabHolder.BackgroundTransparency = 1.000
     TabHolder.BorderSizePixel = 0
     TabHolder.Position = UDim2.new(0.244827583, 0, 0.045, 0) -- Moved lower from 0.024
-    TabHolder.Size = UDim2.new(0, 438, 0, 498) -- Increased height
+    TabHolder.Size = UDim2.new(0, 438, 0, 450) -- Increased height
 
     Tabs.Name = "Tabs"
     Tabs.Parent = TabHolder
