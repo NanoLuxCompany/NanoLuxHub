@@ -1,218 +1,54 @@
 local Library = {}
-local LibraryName = tostring(math.random(100000,999999))
+local LibraryName = tostring(math.random(100000,200000))..tostring(math.random(100000,200000))..tostring(math.random(100000,200000))
 
 function Library:Toggle()
-    if game.CoreGui:FindFirstChild(LibraryName) then
-        game.CoreGui[LibraryName].Enabled = not game.CoreGui[LibraryName].Enabled
+    if game.CoreGui:FindFirstChild(LibraryName).Enabled then 
+        game.CoreGui:FindFirstChild(LibraryName).Enabled = false
+    else 
+        game.CoreGui:FindFirstChild(LibraryName).Enabled = true
     end
 end
 
 function Library:Drag(obj)
-    local dragging, dragInput, dragStart, startPos
-    obj.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+    local UserInputService = game:GetService("UserInputService")
+    
+    local gui = obj
+    
+    local dragging
+    local dragInput
+    local dragStart
+    local startPos
+    
+    local function update(input)
+        local delta = input.Position - dragStart
+        gui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+    
+    gui.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             dragStart = input.Position
-            startPos = obj.Position
+            startPos = gui.Position
+    
             input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then dragging = false end
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
             end)
         end
     end)
-    obj.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
+    
+    gui.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
             dragInput = input
         end
     end)
-    game:GetService("UserInputService").InputChanged:Connect(function(input)
-        if dragging and input == dragInput then
-            local delta = input.Position - dragStart
-            obj.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            update(input)
         end
     end)
-end
-
-function Library:ColorPicker(name, default, callback)
-    local color = default or Color3.fromRGB(255, 255, 255)
-    local h, s, v = color:ToHSV()
-    local callback = callback or function() end
-
-    local Picker = Instance.new("Frame")
-    local Corner = Instance.new("UICorner")
-    local Title = Instance.new("TextLabel")
-    local Close = Instance.new("TextButton")
-    local HueSat = Instance.new("ImageLabel")
-    local HueSatCursor = Instance.new("Frame")
-    local ValueSlider = Instance.new("Frame")
-    local ValueFill = Instance.new("Frame")
-    local ValueCursor = Instance.new("Frame")
-    local Preview = Instance.new("Frame")
-    local PreviewCorner = Instance.new("UICorner")
-
-    Picker.Name = "ColorPicker"
-    Picker.Parent = game.CoreGui[LibraryName]
-    Picker.BackgroundColor3 = Color3.fromRGB(40, 42, 60)
-    Picker.Position = UDim2.new(0.5, -150, 0.5, -150)
-    Picker.Size = UDim2.fromOffset(300, 320)
-    Picker.Visible = false
-    Picker.ZIndex = 999
-
-    Corner.CornerRadius = UDim.new(0, 12)
-    Corner.Parent = Picker
-
-    Title.Name = "Title"
-    Title.Parent = Picker
-    Title.BackgroundTransparency = 1
-    Title.Position = UDim2.fromOffset(10, 5)
-    Title.Size = UDim2.new(1, -50, 0, 30)
-    Title.Font = Enum.Font.GothamBold
-    Title.Text = name
-    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Title.TextSize = 16
-    Title.TextXAlignment = Enum.TextXAlignment.Left
-    Title.ZIndex = 1000
-
-    Close.Name = "Close"
-    Close.Parent = Picker
-    Close.BackgroundTransparency = 1
-    Close.Position = UDim2.new(1, -30, 0, 5)
-    Close.Size = UDim2.fromOffset(25, 25)
-    Close.Font = Enum.Font.GothamBold
-    Close.Text = "X"
-    Close.TextColor3 = Color3.fromRGB(255, 100, 100)
-    Close.TextSize = 18
-    Close.ZIndex = 1000
-    Close.MouseButton1Click:Connect(function()
-        Picker.Visible = false
-    end)
-
-    HueSat.Name = "HueSat"
-    HueSat.Parent = Picker
-    HueSat.BackgroundTransparency = 1
-    HueSat.Position = UDim2.fromOffset(20, 50)
-    HueSat.Size = UDim2.fromOffset(200, 200)
-    HueSat.Image = "rbxassetid://4155801252"
-    HueSat.ZIndex = 1000
-
-    HueSatCursor.Name = "Cursor"
-    HueSatCursor.Parent = HueSat
-    HueSatCursor.BackgroundTransparency = 1
-    HueSatCursor.Size = UDim2.fromOffset(12, 12)
-    HueSatCursor.Position = UDim2.fromScale(s, 1 - v)
-    HueSatCursor.ZIndex = 1002
-    local cursorStroke = Instance.new("UIStroke", HueSatCursor)
-    cursorStroke.Color = Color3.fromRGB(255, 255, 255)
-    cursorStroke.Thickness = 2
-    local cursorCorner = Instance.new("UICorner", HueSatCursor)
-    cursorCorner.CornerRadius = UDim.new(1, 0)
-
-    ValueSlider.Name = "ValueSlider"
-    ValueSlider.Parent = Picker
-    ValueSlider.BackgroundColor3 = Color3.fromRGB(55, 55, 75)
-    ValueSlider.Position = UDim2.fromOffset(240, 50)
-    ValueSlider.Size = UDim2.fromOffset(30, 200)
-    ValueSlider.ZIndex = 1000
-    local vsCorner = Instance.new("UICorner", ValueSlider)
-    vsCorner.CornerRadius = UDim.new(0, 8)
-
-    ValueFill.Name = "Fill"
-    ValueFill.Parent = ValueSlider
-    ValueFill.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
-    ValueFill.Size = UDim2.fromScale(1, 1)
-    ValueFill.ZIndex = 1001
-    local vg = Instance.new("UIGradient", ValueFill)
-    vg.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(255,255,255)), ColorSequenceKeypoint.new(1, Color3.fromRGB(0,0,0))}
-    vg.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0, 0), NumberSequenceKeypoint.new(1, 1)}
-
-    ValueCursor.Name = "Cursor"
-    ValueCursor.Parent = ValueSlider
-    ValueCursor.BackgroundTransparency = 1
-    ValueCursor.Size = UDim2.fromOffset(36, 8)
-    ValueCursor.Position = UDim2.new(0, -3, 1-v, -4)
-    ValueCursor.ZIndex = 1002
-    local vcStroke = Instance.new("UIStroke", ValueCursor)
-    vcStroke.Color = Color3.fromRGB(255, 255, 255)
-    vcStroke.Thickness = 2
-
-    Preview.Name = "Preview"
-    Preview.Parent = Picker
-    Preview.BackgroundColor3 = color
-    Preview.Position = UDim2.fromOffset(20, 270)
-    Preview.Size = UDim2.fromOffset(250, 30)
-    Preview.ZIndex = 1000
-    PreviewCorner.CornerRadius = UDim.new(0, 8)
-    PreviewCorner.Parent = Preview
-
-    -- Logic
-    local mouse = game.Players.LocalPlayer:GetMouse()
-    local draggingHueSat = false
-    local draggingValue = false
-
-    HueSat.InputBegan:Connect(function(inp)
-        if inp.UserInputType == Enum.UserInputType.MouseButton1 then
-            draggingHueSat = true
-        end
-    end)
-    ValueSlider.InputBegan:Connect(function(inp)
-        if inp.UserInputType == Enum.UserInputType.MouseButton1 then
-            draggingValue = true
-        end
-    end)
-
-    game:GetService("UserInputService").InputEnded:Connect(function(inp)
-        if inp.UserInputType == Enum.UserInputType.MouseButton1 then
-            draggingHueSat = false
-            draggingValue = false
-        end
-    end)
-
-    game:GetService("RunService").RenderStepped:Connect(function()
-        if draggingHueSat then
-            local rel = Vector2.new(mouse.X - HueSat.AbsolutePosition.X, mouse.Y - HueSat.AbsolutePosition.Y)
-            local clamped = Vector2.new(math.clamp(rel.X / 200, 0, 1), math.clamp(rel.Y / 200, 0, 1))
-            s = clamped.X
-            v = 1 - clamped.Y
-            HueSatCursor.Position = UDim2.fromScale(s, 1 - v)
-            color = Color3.fromHSV(h, s, v)
-            Preview.BackgroundColor3 = color
-            callback(color)
-        end
-        if draggingValue then
-            local relY = math.clamp((mouse.Y - ValueSlider.AbsolutePosition.Y) / 200, 0, 1)
-            v = 1 - relY
-            ValueCursor.Position = UDim2.new(0, -3, v, -4)
-            color = Color3.fromHSV(h, s, v)
-            Preview.BackgroundColor3 = color
-            callback(color)
-        end
-    end)
-
-    HueSat.MouseMoved:Connect(function(x, y)
-        if not draggingHueSat then return end
-        local relX = math.clamp((x - HueSat.AbsolutePosition.X) / 200, 0, 1)
-        local relY = math.clamp((y - HueSat.AbsolutePosition.Y) / 200, 0, 1)
-        local angle = math.atan2(relY - 0.5, relX - 0.5)
-        h = (angle + math.pi) / (math.pi * 2)
-        ValueFill.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
-        color = Color3.fromHSV(h, s, v)
-        Preview.BackgroundColor3 = color
-        callback(color)
-    end)
-
-    return {
-        Toggle = function()
-            Picker.Visible = not Picker.Visible
-        end,
-        Set = function(c)
-            color = c
-            h, s, v = c:ToHSV()
-            HueSatCursor.Position = UDim2.fromScale(s, 1 - v)
-            ValueCursor.Position = UDim2.new(0, -3, v, -4)
-            ValueFill.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
-            Preview.BackgroundColor3 = c
-            callback(c)
-        end
-    }
 end
 
 function Library:Create(xHubName,xGameName)
@@ -232,9 +68,6 @@ function Library:Create(xHubName,xGameName)
     local GameName = Instance.new("TextLabel")
     local TabHolder = Instance.new("Frame")
     local Tabs = Instance.new("Folder")
-    local TitleBar = Instance.new("Frame")
-    local MinimizeBtn = Instance.new("TextButton")
-    local CloseScriptBtn = Instance.new("TextButton")
 
     function ScrollSize()
         ActualSide.CanvasSize = UDim2.new(0, 0, 0, ActualSideListLayout.AbsoluteContentSize.Y)
@@ -248,51 +81,16 @@ function Library:Create(xHubName,xGameName)
     Main.Parent = ScreenGui
     Main.BackgroundColor3 = Color3.fromRGB(31, 30, 46)
     Main.Position = UDim2.new(0.278277636, 0, 0.281287253, 0)
-    Main.Size = UDim2.new(0, 580, 0, 500) -- Increased height
+    Main.Size = UDim2.new(0, 580, 0, 370)
 
     MainCorner.CornerRadius = UDim.new(0, 12)
     MainCorner.Name = "MainCorner"
     MainCorner.Parent = Main
 
-    -- Title Bar
-    TitleBar.Name = "TitleBar"
-    TitleBar.Parent = Main
-    TitleBar.BackgroundColor3 = Color3.fromRGB(40, 42, 60)
-    TitleBar.BorderSizePixel = 0
-    TitleBar.Position = UDim2.new(0, 0, 0, -25)
-    TitleBar.Size = UDim2.new(1, 0, 0, 25)
-    
-    MinimizeBtn.Name = "Minimize"
-    MinimizeBtn.Parent = TitleBar
-    MinimizeBtn.BackgroundTransparency = 1
-    MinimizeBtn.Position = UDim2.new(1, -60, 0, 2)
-    MinimizeBtn.Size = UDim2.fromOffset(20, 20)
-    MinimizeBtn.Text = "—"
-    MinimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    MinimizeBtn.Font = Enum.Font.GothamBold
-    MinimizeBtn.TextSize = 20
-    MinimizeBtn.MouseButton1Click:Connect(function()
-        Library:Toggle()
-    end)
-
-    CloseScriptBtn.Name = "CloseScript"
-    CloseScriptBtn.Parent = TitleBar
-    CloseScriptBtn.BackgroundTransparency = 1
-    CloseScriptBtn.Position = UDim2.new(1, -30, 0, 2)
-    CloseScriptBtn.Size = UDim2.fromOffset(20, 20)
-    CloseScriptBtn.Text = "X"
-    CloseScriptBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
-    CloseScriptBtn.Font = Enum.Font.GothamBold
-    CloseScriptBtn.TextSize = 16
-    CloseScriptBtn.MouseButton1Click:Connect(function()
-        game.CoreGui[LibraryName]:Destroy()
-        getgenv().NanoLux_Closed = true
-    end)
-
     Sidebar.Name = "Sidebar"
     Sidebar.Parent = Main
     Sidebar.BackgroundColor3 = Color3.fromRGB(40, 42, 60)
-    Sidebar.Size = UDim2.new(0, 140, 0, 500)
+    Sidebar.Size = UDim2.new(0, 140, 0, 370)
 
     SidebarCorner.Name = "SidebarCorner"
     SidebarCorner.Parent = Sidebar
@@ -302,7 +100,7 @@ function Library:Create(xHubName,xGameName)
     Filler.BackgroundColor3 = Color3.fromRGB(40, 42, 60)
     Filler.BorderSizePixel = 0
     Filler.Position = UDim2.new(0.930769145, 0, 0, 0)
-    Filler.Size = UDim2.new(0, 9, 0, 500)
+    Filler.Size = UDim2.new(0, 9, 0, 370)
 
     HubName.Name = "HubName"
     HubName.Parent = Sidebar
@@ -329,7 +127,7 @@ function Library:Create(xHubName,xGameName)
     ActualSide.BackgroundTransparency = 1.000
     ActualSide.BorderSizePixel = 0
     ActualSide.Position = UDim2.new(0, 0, 0.172972977, 0)
-    ActualSide.Size = UDim2.new(0, 139, 0, 427)
+    ActualSide.Size = UDim2.new(0, 139, 0, 297)
     ActualSide.CanvasSize = UDim2.new(0,0,0,0)
     ActualSide.ScrollBarThickness = 0
 
@@ -342,7 +140,7 @@ function Library:Create(xHubName,xGameName)
     SideLine.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     SideLine.BorderSizePixel = 0
     SideLine.Position = UDim2.new(1, 0, 0, 0)
-    SideLine.Size = UDim2.new(0, 2, 0, 500)
+    SideLine.Size = UDim2.new(0, 2, 0, 370)
 
     GameName.Name = "GameName"
     GameName.Parent = Sidebar
@@ -362,7 +160,7 @@ function Library:Create(xHubName,xGameName)
     TabHolder.BackgroundTransparency = 1.000
     TabHolder.BorderSizePixel = 0
     TabHolder.Position = UDim2.new(0.244827583, 0, 0.024324324, 0)
-    TabHolder.Size = UDim2.new(0, 438, 0, 482)
+    TabHolder.Size = UDim2.new(0, 438, 0, 352)
 
     Tabs.Name = "Tabs"
     Tabs.Parent = TabHolder
@@ -389,7 +187,7 @@ function Library:Create(xHubName,xGameName)
         Tab.Visible = xVisible
         Tab.BackgroundColor3 = Color3.fromRGB(31, 30, 46)
         Tab.BorderSizePixel = 0
-        Tab.Size = UDim2.new(0, 438, 0, 482)
+        Tab.Size = UDim2.new(0, 438, 0, 352)
         Tab.ScrollBarThickness = 5
         
         TabListLayout.Name = "TabListLayout"
@@ -963,7 +761,7 @@ function Library:Create(xHubName,xGameName)
             DropList.BorderSizePixel = 0
             DropList.Position = UDim2.new(0, 0, 1, 0)
             DropList.Size = UDim2.new(0, 408, 0, 0)
-            DropList.ScrollBarThickness = 0
+            DropList.ScrollBarThickness = 5
             DropList.Visible = false
             DropList.ZIndex = 100
             DropList.CanvasSize = UDim2.new(0, 0, 0, 0)
@@ -982,14 +780,6 @@ function Library:Create(xHubName,xGameName)
             end
 
             DropListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateDropListSize)
-
-            -- Dropdown scroll fix
-            DropList.MouseEnter:Connect(function()
-                DropList.ScrollBarThickness = 5
-            end)
-            DropList.MouseLeave:Connect(function()
-                DropList.ScrollBarThickness = 0
-            end)
 
             DropdownButton.MouseEnter:Connect(function()
                 game:GetService("TweenService"):Create(DropdownFrame, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
@@ -1137,95 +927,6 @@ function Library:Create(xHubName,xGameName)
             
             return DropdownFunction
         end
-
-        function Elements:ColorPicker(Name, Default, Callback)
-            local Name = Name or "ColorPicker"
-            local Default = Default or Color3.fromRGB(255, 255, 255)
-            local Callback = Callback or function() end
-            
-            local ColorPickerFrame = Instance.new("Frame")
-            local ColorPickerFrameCorner = Instance.new("UICorner")
-            local ColorPickerName = Instance.new("TextLabel")
-            local ColorPickerNamePadding = Instance.new("UIPadding")
-            local ColorPickerButton = Instance.new("TextButton")
-            local ColorPickerPreview = Instance.new("Frame")
-            local ColorPickerPreviewCorner = Instance.new("UICorner")
-            
-            ColorPickerFrame.Name = tostring(Name).."_ColorPicker"
-            ColorPickerFrame.Parent = Tab
-            ColorPickerFrame.BackgroundColor3 = Color3.fromRGB(40, 42, 60)
-            ColorPickerFrame.Size = UDim2.new(0, 408, 0, 35)
-            
-            ColorPickerFrameCorner.Name = "ColorPickerFrameCorner"
-            ColorPickerFrameCorner.Parent = ColorPickerFrame
-            
-            ColorPickerName.Name = "ColorPickerName"
-            ColorPickerName.Parent = ColorPickerFrame
-            ColorPickerName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            ColorPickerName.BackgroundTransparency = 1.000
-            ColorPickerName.BorderSizePixel = 0
-            ColorPickerName.Size = UDim2.new(0, 235, 0, 35)
-            ColorPickerName.Font = Enum.Font.Gotham
-            ColorPickerName.Text = Name
-            ColorPickerName.TextColor3 = Color3.fromRGB(255, 255, 255)
-            ColorPickerName.TextSize = 16.000
-            ColorPickerName.TextXAlignment = Enum.TextXAlignment.Left
-            
-            ColorPickerNamePadding.Name = "ColorPickerNamePadding"
-            ColorPickerNamePadding.Parent = ColorPickerName
-            ColorPickerNamePadding.PaddingLeft = UDim.new(0, 10)
-            
-            ColorPickerPreview.Name = "ColorPickerPreview"
-            ColorPickerPreview.Parent = ColorPickerFrame
-            ColorPickerPreview.BackgroundColor3 = Default
-            ColorPickerPreview.BorderSizePixel = 0
-            ColorPickerPreview.Position = UDim2.new(0.867647052, 0, 0.142857149, 0)
-            ColorPickerPreview.Size = UDim2.new(0, 45, 0, 23)
-            
-            ColorPickerPreviewCorner.Name = "ColorPickerPreviewCorner"
-            ColorPickerPreviewCorner.Parent = ColorPickerPreview
-            ColorPickerPreviewCorner.CornerRadius = UDim.new(0, 4)
-            
-            ColorPickerButton.Name = "ColorPickerButton"
-            ColorPickerButton.Parent = ColorPickerFrame
-            ColorPickerButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            ColorPickerButton.BackgroundTransparency = 1.000
-            ColorPickerButton.BorderSizePixel = 0
-            ColorPickerButton.Size = UDim2.new(0, 408, 0, 35)
-            ColorPickerButton.Font = Enum.Font.SourceSans
-            ColorPickerButton.Text = ""
-            ColorPickerButton.TextColor3 = Color3.fromRGB(0, 0, 0)
-            ColorPickerButton.TextSize = 14.000
-            
-            local picker = Library:ColorPicker(Name, Default, function(color)
-                ColorPickerPreview.BackgroundColor3 = color
-                Callback(color)
-            end)
-            
-            ColorPickerButton.MouseButton1Click:Connect(function()
-                picker:Toggle()
-            end)
-            
-            ColorPickerButton.MouseEnter:Connect(function()
-                game:GetService("TweenService"):Create(ColorPickerFrame, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
-                    BackgroundColor3 = Color3.fromRGB(48, 51, 70)
-                }):Play()
-            end)
-            
-            ColorPickerButton.MouseLeave:Connect(function()
-                game:GetService("TweenService"):Create(ColorPickerFrame, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
-                    BackgroundColor3 = Color3.fromRGB(40, 42, 60)
-                }):Play()
-            end)
-            
-            return {
-                Set = function(color)
-                    ColorPickerPreview.BackgroundColor3 = color
-                    picker:Set(color)
-                end
-            }
-        end
-
         return Elements
     end
     return xTabs
