@@ -168,7 +168,7 @@ function Library:Create(xHubName,xGameName)
     TabHolder.BackgroundTransparency = 1.000
     TabHolder.BorderSizePixel = 0
     TabHolder.Position = UDim2.new(0.244827583, 0, 0.054, 0) -- Moved lower from 0.024
-    TabHolder.Size = UDim2.new(0, 400, 0, 490) -- Increased height
+    TabHolder.Size = UDim2.new(0, 430, 0, 490) -- Increased height
 
     Tabs.Name = "Tabs"
     Tabs.Parent = TabHolder
@@ -261,7 +261,7 @@ function Library:Create(xHubName,xGameName)
         Tab.Visible = xVisible
         Tab.BackgroundColor3 = Color3.fromRGB(31, 30, 46)
         Tab.BorderSizePixel = 0
-        Tab.Size = UDim2.new(0, 400, 0, 490) -- Increased height
+        Tab.Size = UDim2.new(0, 430, 0, 490) -- Increased height
         Tab.ScrollBarThickness = 6 -- Increased scrollbar thickness
         
         TabListLayout.Name = "TabListLayout"
