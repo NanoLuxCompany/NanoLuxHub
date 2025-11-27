@@ -155,7 +155,7 @@ end
 local errorTemplate = createNotificationTemplate(
     "error", 
     Color3.fromRGB(40, 42, 60), -- Основной фон
-    Color3.fromRGB(220, 60, 60),
+    Color3.fromRGB(235, 77, 75)
     "rbxassetid://9072920609",
     "Ошибка"
 )
@@ -164,7 +164,7 @@ local errorTemplate = createNotificationTemplate(
 local infoTemplate = createNotificationTemplate(
     "info", 
     Color3.fromRGB(40, 42, 60), -- Основной фон
-    Color3.fromRGB(55, 74, 251),
+    Color3.fromRGB(47, 128, 237),
     "rbxassetid://9072944922",
     "Информация"
 )
@@ -191,7 +191,7 @@ local warningTemplate = createNotificationTemplate(
 local messageTemplate = createNotificationTemplate(
     "message", 
     Color3.fromRGB(40, 42, 60), -- Основной фон
-    Color3.fromRGB(190, 190, 190),
+    Color3.fromRGB(120, 120, 120),
     nil,
     "Сообщение"
 )
