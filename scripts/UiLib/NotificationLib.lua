@@ -85,7 +85,7 @@ local function createNotificationTemplate(name, bgColor, severityColor, icon, de
         image.AnchorPoint = Vector2.new(0, 0.5)
         image.BackgroundTransparency = 1
         image.Position = UDim2.new(0, 15, 0.5, 0)
-        image.Size = UDim2.new(0, 20, 0, 20)
+        image.Size = UDim2.new(0, 24, 0, 24)
         image.Image = icon
         image.ImageColor3 = severityColor
     end
