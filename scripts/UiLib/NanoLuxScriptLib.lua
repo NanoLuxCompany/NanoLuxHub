@@ -1,8 +1,6 @@
 local Library = {}
 local LibraryName = tostring(math.random(100000,200000))..tostring(math.random(100000,200000))..tostring(math.random(100000,200000))
 
-getgenv().CleanupAllConnections = nil
-
 function Library:Toggle()
     if game.CoreGui:FindFirstChild(LibraryName).Enabled then 
         game.CoreGui:FindFirstChild(LibraryName).Enabled = false
@@ -209,17 +207,6 @@ function Library:Create(xHubName,xGameName)
 
     -- Close button functionality
     CloseButton.MouseButton1Click:Connect(function()
-        -- Вызываем функцию очистки из основного скрипта
-        if CleanupAllConnections then
-            CleanupAllConnections()
-        else
-            -- Резервная очистка если функция не определена
-            if BodyVelocity then BodyVelocity:Destroy() end
-            if FlyConnection then FlyConnection:Disconnect() end
-            if NoclipConnection then NoclipConnection:Disconnect() end
-            if HitboxConnection then HitboxConnection:Disconnect() end
-        end
-        wait(0.1)
         ScreenGui:Destroy()
     end)
 
