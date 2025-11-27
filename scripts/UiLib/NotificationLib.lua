@@ -85,7 +85,7 @@ local function createNotificationTemplate(name, bgColor, severityColor, icon, de
         image.AnchorPoint = Vector2.new(0, 0.5)
         image.BackgroundTransparency = 1
         image.Position = UDim2.new(0, 15, 0.5, 0)
-        image.Size = UDim2.new(0, 24, 0, 24)
+        image.Size = UDim2.new(0, 20, 0, 20)
         image.Image = icon
         image.ImageColor3 = severityColor
     end
@@ -105,7 +105,7 @@ local function createNotificationTemplate(name, bgColor, severityColor, icon, de
     headingText.Size = UDim2.new(1, 0, 0, 25)
     headingText.Font = Enum.Font.GothamBold
     headingText.Text = defaultHeading
-    headingText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    headingText.TextColor3 = Color3.fromRGB(30, 30, 30)
     headingText.TextSize = 14
     headingText.TextXAlignment = Enum.TextXAlignment.Left
     headingText.TextYAlignment = Enum.TextYAlignment.Bottom
@@ -119,7 +119,7 @@ local function createNotificationTemplate(name, bgColor, severityColor, icon, de
     bodyText.Size = UDim2.new(1, 0, 1, -25)
     bodyText.Font = Enum.Font.GothamSemibold
     bodyText.Text = "Текст уведомления"
-    bodyText.TextColor3 = Color3.fromRGB(220, 220, 220)
+    bodyText.TextColor3 = Color3.fromRGB(60, 60, 60)
     bodyText.TextSize = 12
     bodyText.TextWrapped = true
     bodyText.TextXAlignment = Enum.TextXAlignment.Left
@@ -151,46 +151,42 @@ local function createNotificationTemplate(name, bgColor, severityColor, icon, de
     return template
 end
 
--- Ошибка
+-- Создаем шаблоны для разных типов уведомлений
 local errorTemplate = createNotificationTemplate(
     "error", 
-    Color3.fromRGB(40, 42, 60), -- Основной фон
+    Color3.fromRGB(255, 235, 235), 
     Color3.fromRGB(235, 77, 75),
     "rbxassetid://9072920609",
     "Ошибка"
 )
 
--- Информация
 local infoTemplate = createNotificationTemplate(
     "info", 
-    Color3.fromRGB(40, 42, 60), -- Основной фон
+    Color3.fromRGB(235, 245, 255), 
     Color3.fromRGB(47, 128, 237),
     "rbxassetid://9072944922",
     "Информация"
 )
 
--- Успех
 local successTemplate = createNotificationTemplate(
     "success", 
-    Color3.fromRGB(40, 42, 60), -- Основной фон
+    Color3.fromRGB(235, 255, 245), 
     Color3.fromRGB(39, 174, 96),
     "rbxassetid://9073052584",
     "Успех"
 )
 
--- Предупреждение
 local warningTemplate = createNotificationTemplate(
     "warning", 
-    Color3.fromRGB(40, 42, 60), -- Основной фон
+    Color3.fromRGB(255, 250, 235), 
     Color3.fromRGB(241, 196, 15),
     "rbxassetid://9072448788",
     "Предупреждение"
 )
 
--- Сообщение
 local messageTemplate = createNotificationTemplate(
     "message", 
-    Color3.fromRGB(40, 42, 60), -- Основной фон
+    Color3.fromRGB(245, 245, 245), 
     Color3.fromRGB(120, 120, 120),
     nil,
     "Сообщение"
