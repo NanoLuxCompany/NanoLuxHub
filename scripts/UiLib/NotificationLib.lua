@@ -105,7 +105,7 @@ local function createNotificationTemplate(name, bgColor, severityColor, icon, de
     headingText.Size = UDim2.new(1, 0, 0, 25)
     headingText.Font = Enum.Font.GothamBold
     headingText.Text = defaultHeading
-    headingText.TextColor3 = Color3.fromRGB(30, 30, 30)
+    headingText.TextColor3 = Color3.fromRGB(255, 255, 255)
     headingText.TextSize = 14
     headingText.TextXAlignment = Enum.TextXAlignment.Left
     headingText.TextYAlignment = Enum.TextYAlignment.Bottom
@@ -119,7 +119,7 @@ local function createNotificationTemplate(name, bgColor, severityColor, icon, de
     bodyText.Size = UDim2.new(1, 0, 1, -25)
     bodyText.Font = Enum.Font.GothamSemibold
     bodyText.Text = "Текст уведомления"
-    bodyText.TextColor3 = Color3.fromRGB(60, 60, 60)
+    bodyText.TextColor3 = Color3.fromRGB(220, 220, 220)
     bodyText.TextSize = 12
     bodyText.TextWrapped = true
     bodyText.TextXAlignment = Enum.TextXAlignment.Left
@@ -151,43 +151,47 @@ local function createNotificationTemplate(name, bgColor, severityColor, icon, de
     return template
 end
 
--- Создаем шаблоны для разных типов уведомлений
+-- Ошибка
 local errorTemplate = createNotificationTemplate(
     "error", 
-    Color3.fromRGB(255, 235, 235), 
-    Color3.fromRGB(235, 77, 75),
+    Color3.fromRGB(40, 42, 60), -- Основной фон
+    Color3.fromRGB(220, 60, 60),
     "rbxassetid://9072920609",
     "Ошибка"
 )
 
+-- Информация
 local infoTemplate = createNotificationTemplate(
     "info", 
-    Color3.fromRGB(235, 245, 255), 
-    Color3.fromRGB(47, 128, 237),
+    Color3.fromRGB(40, 42, 60), -- Основной фон
+    Color3.fromRGB(55, 74, 251),
     "rbxassetid://9072944922",
     "Информация"
 )
 
+-- Успех
 local successTemplate = createNotificationTemplate(
     "success", 
-    Color3.fromRGB(235, 255, 245), 
+    Color3.fromRGB(40, 42, 60), -- Основной фон
     Color3.fromRGB(39, 174, 96),
     "rbxassetid://9073052584",
     "Успех"
 )
 
+-- Предупреждение
 local warningTemplate = createNotificationTemplate(
     "warning", 
-    Color3.fromRGB(255, 250, 235), 
+    Color3.fromRGB(40, 42, 60), -- Основной фон
     Color3.fromRGB(241, 196, 15),
     "rbxassetid://9072448788",
     "Предупреждение"
 )
 
+-- Сообщение
 local messageTemplate = createNotificationTemplate(
     "message", 
-    Color3.fromRGB(245, 245, 245), 
-    Color3.fromRGB(120, 120, 120),
+    Color3.fromRGB(40, 42, 60), -- Основной фон
+    Color3.fromRGB(190, 190, 190),
     nil,
     "Сообщение"
 )
