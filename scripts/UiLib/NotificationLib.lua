@@ -155,7 +155,7 @@ end
 local errorTemplate = createNotificationTemplate(
     "error", 
     Color3.fromRGB(40, 42, 60), -- Основной фон
-    Color3.fromRGB(235, 77, 75)
+    Color3.fromRGB(235, 77, 75),
     "rbxassetid://9072920609",
     "Ошибка"
 )
