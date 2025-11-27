@@ -1,6 +1,9 @@
 local Library = {}
 local LibraryName = tostring(math.random(100000,200000))..tostring(math.random(100000,200000))..tostring(math.random(100000,200000))
 
+-- Глобальная переменная для отслеживания состояния скрипта
+getgenv().NanoLuxScriptRunning = true
+
 function Library:Toggle()
     if game.CoreGui:FindFirstChild(LibraryName).Enabled then 
         game.CoreGui:FindFirstChild(LibraryName).Enabled = false
@@ -49,6 +52,30 @@ function Library:Drag(obj)
             update(input)
         end
     end)
+end
+
+-- Функция полного выключения скрипта
+function Library:Close()
+    getgenv().NanoLuxScriptRunning = false
+    
+    -- Уничтожаем весь GUI
+    if game.CoreGui:FindFirstChild(LibraryName) then
+        game.CoreGui:FindFirstChild(LibraryName):Destroy()
+    end
+    
+    -- Очищаем уведомления
+    local coreGui = game:GetService("CoreGui")
+    local notifications = coreGui:FindFirstChild("JxereasNotifications")
+    if notifications then
+        notifications:Destroy()
+    end
+    
+    -- Останавливаем все активные функции NanoLuxScript
+    if getgenv().StopScriptCompletely then
+        getgenv().StopScriptCompletely()
+    end
+    
+    warn("NanoLuxHub полностью выключен")
 end
 
 function Library:Create(xHubName,xGameName)
@@ -205,9 +232,9 @@ function Library:Create(xHubName,xGameName)
     MinimizeButtonCorner.Name = "MinimizeButtonCorner"
     MinimizeButtonCorner.Parent = MinimizeButton
 
-    -- Close button functionality
+    -- Close button functionality - ПОЛНОЕ ВЫКЛЮЧЕНИЕ
     CloseButton.MouseButton1Click:Connect(function()
-        ScreenGui:Destroy()
+        Library:Close()
     end)
 
     CloseButton.MouseEnter:Connect(function()
@@ -399,6 +426,7 @@ function Library:Create(xHubName,xGameName)
             ButtonPadding.PaddingLeft = UDim.new(0, 10)
 
             Button.MouseButton1Down:Connect(function()
+                if not getgenv().NanoLuxScriptRunning then return end
                 game:GetService("TweenService"):Create(Button, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
                     BackgroundColor3 = Color3.fromRGB(55, 74, 251)
                 }):Play()
@@ -410,11 +438,13 @@ function Library:Create(xHubName,xGameName)
             end)
 
             Button.MouseEnter:Connect(function()
+                if not getgenv().NanoLuxScriptRunning then return end
                 game:GetService("TweenService"):Create(Button, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
                     BackgroundColor3 = Color3.fromRGB(48, 51, 70)
                 }):Play()
             end)
             Button.MouseLeave:Connect(function()
+                if not getgenv().NanoLuxScriptRunning then return end
                 game:GetService("TweenService"):Create(Button, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
                     BackgroundColor3 = Color3.fromRGB(40, 42, 60)
                 }):Play()
@@ -500,6 +530,7 @@ function Library:Create(xHubName,xGameName)
             ToggleCircle.SliceScale = 0.120
 
             ToggleButton.MouseButton1Down:Connect(function()
+                if not getgenv().NanoLuxScriptRunning then return end
                 ToggleEnabled = not ToggleEnabled
                 if ToggleEnabled then 
                     game:GetService("TweenService"):Create(ToggleF, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(55, 74, 251)}):Play() 
@@ -599,12 +630,17 @@ function Library:Create(xHubName,xGameName)
             local mouse = game:GetService("Players").LocalPlayer:GetMouse();
 
             SliderButton.MouseButton1Down:Connect(function()
+                if not getgenv().NanoLuxScriptRunning then return end
                 Value = math.floor((((tonumber(Max) - tonumber(Min)) / 389) * SliderTrail.AbsoluteSize.X) + tonumber(Min)) or 0
                 pcall(function()
                     Callback(Value)
                 end)
                 SliderTrail:TweenSize(UDim2.new(0, math.clamp(mouse.X - SliderTrail.AbsolutePosition.X, 0, 389), 0, 10), "InOut", "Linear", 0.05, true)
                 moveconnection = mouse.Move:Connect(function()
+                    if not getgenv().NanoLuxScriptRunning then 
+                        moveconnection:Disconnect()
+                        return 
+                    end
                     SliderValue.Text = Value
                     Value = math.floor((((tonumber(Max) - tonumber(Min)) / 389) * SliderTrail.AbsoluteSize.X) + tonumber(Min))
                     pcall(function()
@@ -678,12 +714,14 @@ function Library:Create(xHubName,xGameName)
             TextboxCorner.Parent = Textbox
 
             Textbox.Focused:Connect(function()
+                if not getgenv().NanoLuxScriptRunning then return end
                 game:GetService("TweenService"):Create(Textbox, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
                     BackgroundColor3 = Color3.fromRGB(55, 74, 251)
                 }):Play()
             end)
 
             Textbox.FocusLost:Connect(function()
+                if not getgenv().NanoLuxScriptRunning then return end
                 game:GetService("TweenService"):Create(Textbox, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
                     BackgroundColor3 = Color3.fromRGB(55, 55, 75)
                 }):Play()
@@ -742,6 +780,7 @@ function Library:Create(xHubName,xGameName)
             KeybindButtonCorner.Parent = KeybindButton
 
             KeybindButton.MouseButton1Click:connect(function() 
+                if not getgenv().NanoLuxScriptRunning then return end
                 game.TweenService:Create(KeybindButton, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
                     BackgroundColor3 = Color3.fromRGB(55, 74, 251)
                 }):Play()
@@ -757,7 +796,7 @@ function Library:Create(xHubName,xGameName)
             end)
     
             game:GetService("UserInputService").InputBegan:connect(function(a, gp) 
-                if not gp then 
+                if not gp and getgenv().NanoLuxScriptRunning then 
                     if a.KeyCode.Name == Keyx then 
                         Callback()
                     end
@@ -856,18 +895,21 @@ function Library:Create(xHubName,xGameName)
             DropListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateDropListSize)
 
             DropdownButton.MouseEnter:Connect(function()
+                if not getgenv().NanoLuxScriptRunning then return end
                 game:GetService("TweenService"):Create(DropdownFrame, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
                     BackgroundColor3 = Color3.fromRGB(48, 51, 70)
                 }):Play()
             end)
             
             DropdownButton.MouseLeave:Connect(function()
+                if not getgenv().NanoLuxScriptRunning then return end
                 game:GetService("TweenService"):Create(DropdownFrame, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
                     BackgroundColor3 = Color3.fromRGB(40, 42, 60)
                 }):Play()
             end)
 
             DropdownButton.MouseButton1Down:Connect(function()
+                if not getgenv().NanoLuxScriptRunning then return end
                 if opened then 
                     opened = false
                     game:GetService("TweenService"):Create(DropList, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
@@ -906,6 +948,7 @@ function Library:Create(xHubName,xGameName)
                 OptionCorner.Parent = Option
 
                 Option.MouseButton1Down:Connect(function()
+                    if not getgenv().NanoLuxScriptRunning then return end
                     Callback(v)
                     for a,b in pairs(DropList:GetChildren()) do 
                         if b:IsA("TextButton") then 
@@ -927,12 +970,14 @@ function Library:Create(xHubName,xGameName)
                 end)
 
                 Option.MouseEnter:Connect(function()
+                    if not getgenv().NanoLuxScriptRunning then return end
                     game:GetService("TweenService"):Create(Option, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
                         BackgroundColor3 = Color3.fromRGB(48, 51, 70)
                     }):Play()
                 end)
                 
                 Option.MouseLeave:Connect(function()
+                    if not getgenv().NanoLuxScriptRunning then return end
                     game:GetService("TweenService"):Create(Option, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
                         BackgroundColor3 = Color3.fromRGB(40, 42, 60)
                     }):Play()
@@ -964,6 +1009,7 @@ function Library:Create(xHubName,xGameName)
                     OptionCorner.Parent = Option
 
                     Option.MouseButton1Down:Connect(function()
+                        if not getgenv().NanoLuxScriptRunning then return end
                         Callback(v)
                         for a,b in pairs(DropList:GetChildren()) do 
                             if b:IsA("TextButton") then 
@@ -985,12 +1031,14 @@ function Library:Create(xHubName,xGameName)
                     end)
 
                     Option.MouseEnter:Connect(function()
+                        if not getgenv().NanoLuxScriptRunning then return end
                         game:GetService("TweenService"):Create(Option, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
                             BackgroundColor3 = Color3.fromRGB(48, 51, 70)
                         }):Play()
                     end)
                     
                     Option.MouseLeave:Connect(function()
+                        if not getgenv().NanoLuxScriptRunning then return end
                         game:GetService("TweenService"):Create(Option, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
                             BackgroundColor3 = Color3.fromRGB(40, 42, 60)
                         }):Play()
@@ -1235,6 +1283,7 @@ function Library:Create(xHubName,xGameName)
 
             -- Function to update color
             local function updateColorFromCanvas(position)
+                if not getgenv().NanoLuxScriptRunning then return end
                 local x = math.clamp(position.X, 0, 1)
                 local y = math.clamp(position.Y, 0, 1)
                 
@@ -1249,6 +1298,7 @@ function Library:Create(xHubName,xGameName)
             end
 
             local function updateColorFromHue(position)
+                if not getgenv().NanoLuxScriptRunning then return end
                 local y = math.clamp(position.Y, 0, 1)
                 local hue = 1 - y
                 
@@ -1261,6 +1311,7 @@ function Library:Create(xHubName,xGameName)
 
             -- Color Canvas interaction
             ColorCanvas.InputBegan:Connect(function(input)
+                if not getgenv().NanoLuxScriptRunning then return end
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then
                     updateColorFromCanvas(Vector2.new(input.Position.X / ColorCanvas.AbsoluteSize.X, input.Position.Y / ColorCanvas.AbsoluteSize.Y))
                     
@@ -1277,6 +1328,7 @@ function Library:Create(xHubName,xGameName)
 
             -- Hue Slider interaction
             HueSlider.InputBegan:Connect(function(input)
+                if not getgenv().NanoLuxScriptRunning then return end
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then
                     updateColorFromHue(Vector2.new(0, input.Position.Y / HueSlider.AbsoluteSize.Y))
                     
@@ -1293,6 +1345,7 @@ function Library:Create(xHubName,xGameName)
 
             -- Button click to open color picker
             ColorPickerButton.MouseButton1Click:Connect(function()
+                if not getgenv().NanoLuxScriptRunning then return end
                 ColorPickerOpen = not ColorPickerOpen
                 ColorPickerWindow.Visible = ColorPickerOpen
             end)
