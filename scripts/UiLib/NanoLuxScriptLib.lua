@@ -1023,7 +1023,8 @@ function Library:Create(xHubName,xGameName)
             return DropdownFunction
         end
 
-        -- New ColorPicker element        function Elements:Colorpicker(Name, DefaultColor, Callback)
+        -- New ColorPicker element        
+        function Elements:Colorpicker(Name, DefaultColor, Callback)
             local Name = Name or "Colorpicker"
             local DefaultColor = DefaultColor or Color3.fromRGB(255, 255, 255)
             local Callback = Callback or function() end
