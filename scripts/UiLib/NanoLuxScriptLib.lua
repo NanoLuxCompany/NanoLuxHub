@@ -2,12 +2,18 @@ local Library = {}
 local LibraryName = tostring(math.random(100000,200000))..tostring(math.random(100000,200000))..tostring(math.random(100000,200000))
 
 function Library:Toggle()
-    if game.CoreGui:FindFirstChild(LibraryName).Enabled then 
-        game.CoreGui:FindFirstChild(LibraryName).Enabled = false
-    else 
-        game.CoreGui:FindFirstChild(LibraryName).Enabled = true
+    local gui = game.CoreGui:FindFirstChild(LibraryName)
+    if not gui then
+        return
     end
+
+    if gui.Enabled == nil then
+        return
+    end
+
+    gui.Enabled = not gui.Enabled
 end
+
 
 function Library:Drag(obj)
     local UserInputService = game:GetService("UserInputService")
