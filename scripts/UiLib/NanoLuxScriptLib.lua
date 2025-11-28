@@ -4,15 +4,28 @@ local LibraryName = tostring(math.random(100000,200000))..tostring(math.random(1
 function Library:Toggle()
     local gui = game.CoreGui:FindFirstChild(LibraryName)
     if not gui then
+        warn("Library:Toggle -> GUI '" .. tostring(LibraryName) .. "' not found in CoreGui.")
         return
     end
 
-    if gui.Enabled == nil then
-        return
-    end
+    -- Попытка переключить Enabled, если свойство существует
+    local success, err = pcall(function()
+        if typeof(gui.Enabled) == "boolean" then
+            gui.Enabled = not gui.Enabled
+        else
+            for _, child in ipairs(gui:GetChildren()) do
+                if child:IsA("Frame") or child:IsA("ScrollingFrame") then
+                    child.Visible = not child.Visible
+                end
+            end
+        end
+    end)
 
-    gui.Enabled = not gui.Enabled
+    if not success then
+        warn("Library:Toggle -> failed to toggle GUI: "..tostring(err))
+    end
 end
+
 
 
 function Library:Drag(obj)
