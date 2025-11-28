@@ -1,32 +1,6 @@
 local Library = {}
 local LibraryName = tostring(math.random(100000,200000))..tostring(math.random(100000,200000))..tostring(math.random(100000,200000))
 
-function Library:Toggle()
-    local gui = game.CoreGui:FindFirstChild(LibraryName)
-    if not gui then
-        warn("Library:Toggle -> GUI '" .. tostring(LibraryName) .. "' not found in CoreGui.")
-        return
-    end
-
-    local success, err = pcall(function()
-        if typeof(gui.Enabled) == "boolean" then
-            gui.Enabled = not gui.Enabled
-        else
-            for _, child in ipairs(gui:GetChildren()) do
-                if child:IsA("Frame") or child:IsA("ScrollingFrame") then
-                    child.Visible = not child.Visible
-                end
-            end
-        end
-    end)
-
-    if not success then
-        warn("Library:Toggle -> failed to toggle GUI: "..tostring(err))
-    end
-end
-
-
-
 function Library:Drag(obj)
     local UserInputService = game:GetService("UserInputService")
 
@@ -72,6 +46,30 @@ function Library:Drag(obj)
             update(input)
         end
     end)
+end
+
+function Library:Toggle()
+    local gui = game.CoreGui:FindFirstChild(LibraryName)
+    if not gui then
+        warn("Library:Toggle -> GUI '" .. tostring(LibraryName) .. "' not found in CoreGui.")
+        return
+    end
+
+    local success, err = pcall(function()
+        if typeof(gui.Enabled) == "boolean" then
+            gui.Enabled = not gui.Enabled
+        else
+            for _, child in ipairs(gui:GetChildren()) do
+                if child:IsA("Frame") or child:IsA("ScrollingFrame") then
+                    child.Visible = not child.Visible
+                end
+            end
+        end
+    end)
+
+    if not success then
+        warn("Library:Toggle -> failed to toggle GUI: "..tostring(err))
+    end
 end
 
 function Library:Create(xHubName,xGameName)
