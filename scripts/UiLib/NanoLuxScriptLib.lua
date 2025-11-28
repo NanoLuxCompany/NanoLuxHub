@@ -8,7 +8,6 @@ function Library:Toggle()
         return
     end
 
-    -- Попытка переключить Enabled, если свойство существует
     local success, err = pcall(function()
         if typeof(gui.Enabled) == "boolean" then
             gui.Enabled = not gui.Enabled
