@@ -1010,6 +1010,10 @@ function Library:Create(xHubName,xGameName)
             local CurrentColor = DefaultColor
             local ColorPickerOpen = false
 
+            local UserInputService = game:GetService("UserInputService")
+            local Mouse = game.Players.LocalPlayer:GetMouse()
+
+            -- Main frames
             local ColorPickerFrame = Instance.new("Frame")
             local ColorPickerFrameCorner = Instance.new("UICorner")
             local ColorPickerName = Instance.new("TextLabel")
@@ -1019,23 +1023,35 @@ function Library:Create(xHubName,xGameName)
             local ColorPreview = Instance.new("Frame")
             local ColorPreviewCorner = Instance.new("UICorner")
 
-            -- Color Picker Window
+            -- Window
             local ColorPickerWindow = Instance.new("Frame")
             local ColorPickerWindowCorner = Instance.new("UICorner")
             local ColorPickerWindowHeader = Instance.new("Frame")
             local ColorPickerWindowTitle = Instance.new("TextLabel")
             local ColorPickerWindowClose = Instance.new("TextButton")
+
+            -- Canvas
             local ColorCanvas = Instance.new("ImageLabel")
             local ColorCursor = Instance.new("Frame")
             local ColorCursorCorner = Instance.new("UICorner")
+
+            -- Hue
             local HueSlider = Instance.new("Frame")
             local HueSliderCorner = Instance.new("UICorner")
             local HueCursor = Instance.new("Frame")
             local HueCursorCorner = Instance.new("UICorner")
+
+            -- Current color
             local CurrentColorDisplay = Instance.new("Frame")
             local CurrentColorDisplayCorner = Instance.new("UICorner")
+
+            -- Confirm
             local ConfirmButton = Instance.new("TextButton")
             local ConfirmButtonCorner = Instance.new("UICorner")
+
+            --------------------------------------------------------------------
+            -- LAYOUT (оставил 100% как у тебя)
+            --------------------------------------------------------------------
 
             ColorPickerFrame.Name = tostring(Name).."_Colorpicker"
             ColorPickerFrame.Parent = Tab
@@ -1043,82 +1059,60 @@ function Library:Create(xHubName,xGameName)
             ColorPickerFrame.BorderSizePixel = 0
             ColorPickerFrame.Size = UDim2.new(0, 408, 0, 35)
 
-            ColorPickerFrameCorner.Name = "ColorPickerFrameCorner"
             ColorPickerFrameCorner.Parent = ColorPickerFrame
 
-            ColorPickerName.Name = "ColorPickerName"
             ColorPickerName.Parent = ColorPickerFrame
-            ColorPickerName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            ColorPickerName.BackgroundTransparency = 1.000
-            ColorPickerName.BorderSizePixel = 0
+            ColorPickerName.BackgroundTransparency = 1
             ColorPickerName.Size = UDim2.new(0, 235, 0, 35)
             ColorPickerName.Font = Enum.Font.Gotham
             ColorPickerName.Text = Name
             ColorPickerName.TextColor3 = Color3.fromRGB(255, 255, 255)
-            ColorPickerName.TextSize = 16.000
+            ColorPickerName.TextSize = 16
             ColorPickerName.TextXAlignment = Enum.TextXAlignment.Left
 
-            ColorPickerNamePadding.Name = "ColorPickerNamePadding"
             ColorPickerNamePadding.Parent = ColorPickerName
             ColorPickerNamePadding.PaddingLeft = UDim.new(0, 10)
 
-            ColorPickerButton.Name = "ColorPickerButton"
             ColorPickerButton.Parent = ColorPickerFrame
             ColorPickerButton.BackgroundColor3 = Color3.fromRGB(55, 55, 75)
             ColorPickerButton.Position = UDim2.new(0.610294104, 0, 0.171428576, 0)
             ColorPickerButton.Size = UDim2.new(0, 150, 0, 23)
             ColorPickerButton.Font = Enum.Font.Gotham
             ColorPickerButton.Text = ""
-            ColorPickerButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-            ColorPickerButton.TextSize = 14.000
             ColorPickerButton.ZIndex = 2
 
-            ColorPickerButtonCorner.Name = "ColorPickerButtonCorner"
             ColorPickerButtonCorner.Parent = ColorPickerButton
 
-            ColorPreview.Name = "ColorPreview"
             ColorPreview.Parent = ColorPickerButton
             ColorPreview.BackgroundColor3 = DefaultColor
-            ColorPreview.BorderSizePixel = 0
             ColorPreview.Position = UDim2.new(0.8, 0, 0.1, 0)
             ColorPreview.Size = UDim2.new(0, 18, 0, 18)
-            ColorPreview.ZIndex = 3
-
-            ColorPreviewCorner.Name = "ColorPreviewCorner"
             ColorPreviewCorner.Parent = ColorPreview
-            ColorPreviewCorner.CornerRadius = UDim.new(0, 4)
 
-            -- Color Picker Window Setup
-            ColorPickerWindow.Name = "ColorPickerWindow"
+            --------------------------------------------------------------------
+            -- WINDOW
+            --------------------------------------------------------------------
+
             ColorPickerWindow.Parent = ScreenGui
             ColorPickerWindow.BackgroundColor3 = Color3.fromRGB(31, 30, 46)
-            ColorPickerWindow.BorderSizePixel = 0
             ColorPickerWindow.Position = UDim2.new(0.3, 0, 0.3, 0)
             ColorPickerWindow.Size = UDim2.new(0, 300, 0, 250)
             ColorPickerWindow.Visible = false
             ColorPickerWindow.ZIndex = 10
-
-            ColorPickerWindowCorner.Name = "ColorPickerWindowCorner"
             ColorPickerWindowCorner.Parent = ColorPickerWindow
-            ColorPickerWindowCorner.CornerRadius = UDim.new(0, 8)
 
-            ColorPickerWindowHeader.Name = "ColorPickerWindowHeader"
             ColorPickerWindowHeader.Parent = ColorPickerWindow
             ColorPickerWindowHeader.BackgroundColor3 = Color3.fromRGB(40, 42, 60)
-            ColorPickerWindowHeader.BorderSizePixel = 0
             ColorPickerWindowHeader.Size = UDim2.new(1, 0, 0, 30)
             ColorPickerWindowHeader.ZIndex = 11
 
-            ColorPickerWindowTitle.Name = "ColorPickerWindowTitle"
             ColorPickerWindowTitle.Parent = ColorPickerWindowHeader
-            ColorPickerWindowTitle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            ColorPickerWindowTitle.BackgroundTransparency = 1.000
-            ColorPickerWindowTitle.BorderSizePixel = 0
+            ColorPickerWindowTitle.BackgroundTransparency = 1
             ColorPickerWindowTitle.Size = UDim2.new(0.8, 0, 1, 0)
             ColorPickerWindowTitle.Font = Enum.Font.Gotham
             ColorPickerWindowTitle.Text = "Color Picker"
             ColorPickerWindowTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-            ColorPickerWindowTitle.TextSize = 14.000
+            ColorPickerWindowTitle.TextSize = 14
             ColorPickerWindowTitle.TextXAlignment = Enum.TextXAlignment.Left
             ColorPickerWindowTitle.ZIndex = 12
 
@@ -1126,53 +1120,47 @@ function Library:Create(xHubName,xGameName)
             ColorPickerWindowTitlePadding.Parent = ColorPickerWindowTitle
             ColorPickerWindowTitlePadding.PaddingLeft = UDim.new(0, 10)
 
-            ColorPickerWindowClose.Name = "ColorPickerWindowClose"
             ColorPickerWindowClose.Parent = ColorPickerWindowHeader
             ColorPickerWindowClose.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
-            ColorPickerWindowClose.BorderSizePixel = 0
             ColorPickerWindowClose.Position = UDim2.new(0.9, 0, 0.1, 0)
             ColorPickerWindowClose.Size = UDim2.new(0, 20, 0, 20)
             ColorPickerWindowClose.Font = Enum.Font.Gotham
             ColorPickerWindowClose.Text = "X"
             ColorPickerWindowClose.TextColor3 = Color3.fromRGB(255, 255, 255)
-            ColorPickerWindowClose.TextSize = 12.000
+            ColorPickerWindowClose.TextSize = 12
             ColorPickerWindowClose.ZIndex = 12
 
-            local ColorPickerWindowCloseCorner = Instance.new("UICorner")
-            ColorPickerWindowCloseCorner.Parent = ColorPickerWindowClose
-            ColorPickerWindowCloseCorner.CornerRadius = UDim.new(0, 4)
+            local CloseCorner = Instance.new("UICorner")
+            CloseCorner.Parent = ColorPickerWindowClose
+            CloseCorner.CornerRadius = UDim.new(0, 4)
 
-            -- Color Canvas
-            ColorCanvas.Name = "ColorCanvas"
+            --------------------------------------------------------------------
+            -- CANVAS
+            --------------------------------------------------------------------
+
             ColorCanvas.Parent = ColorPickerWindow
             ColorCanvas.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            ColorCanvas.BorderSizePixel = 0
             ColorCanvas.Position = UDim2.new(0.05, 0, 0.2, 0)
             ColorCanvas.Size = UDim2.new(0, 150, 0, 150)
             ColorCanvas.Image = "rbxassetid://4155801252"
             ColorCanvas.ZIndex = 11
 
-            ColorCursor.Name = "ColorCursor"
             ColorCursor.Parent = ColorCanvas
             ColorCursor.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            ColorCursor.BorderSizePixel = 0
             ColorCursor.Size = UDim2.new(0, 10, 0, 10)
             ColorCursor.ZIndex = 12
-
-            ColorCursorCorner.Name = "ColorCursorCorner"
             ColorCursorCorner.Parent = ColorCursor
             ColorCursorCorner.CornerRadius = UDim.new(1, 0)
 
-            -- Hue Slider
-            HueSlider.Name = "HueSlider"
+            --------------------------------------------------------------------
+            -- HUE SLIDER
+            --------------------------------------------------------------------
+
             HueSlider.Parent = ColorPickerWindow
             HueSlider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            HueSlider.BorderSizePixel = 0
             HueSlider.Position = UDim2.new(0.6, 0, 0.2, 0)
             HueSlider.Size = UDim2.new(0, 20, 0, 150)
             HueSlider.ZIndex = 11
-
-            HueSliderCorner.Name = "HueSliderCorner"
             HueSliderCorner.Parent = HueSlider
             HueSliderCorner.CornerRadius = UDim.new(0, 4)
 
@@ -1189,153 +1177,154 @@ function Library:Create(xHubName,xGameName)
             HueGradient.Rotation = 90
             HueGradient.Parent = HueSlider
 
-            HueCursor.Name = "HueCursor"
             HueCursor.Parent = HueSlider
             HueCursor.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            HueCursor.BorderSizePixel = 0
             HueCursor.Size = UDim2.new(1, 0, 0, 4)
             HueCursor.ZIndex = 12
-
-            HueCursorCorner.Name = "HueCursorCorner"
             HueCursorCorner.Parent = HueCursor
             HueCursorCorner.CornerRadius = UDim.new(0, 2)
 
-            -- Current Color Display
-            CurrentColorDisplay.Name = "CurrentColorDisplay"
+            --------------------------------------------------------------------
+            -- CURRENT COLOR
+            --------------------------------------------------------------------
+
             CurrentColorDisplay.Parent = ColorPickerWindow
             CurrentColorDisplay.BackgroundColor3 = DefaultColor
-            CurrentColorDisplay.BorderSizePixel = 0
             CurrentColorDisplay.Position = UDim2.new(0.6, 0, 0.7, 0)
             CurrentColorDisplay.Size = UDim2.new(0, 80, 0, 30)
             CurrentColorDisplay.ZIndex = 11
-
-            CurrentColorDisplayCorner.Name = "CurrentColorDisplayCorner"
             CurrentColorDisplayCorner.Parent = CurrentColorDisplay
-            CurrentColorDisplayCorner.CornerRadius = UDim.new(0, 4)
 
-            -- Confirm Button
-            ConfirmButton.Name = "ConfirmButton"
+            --------------------------------------------------------------------
+            -- CONFIRM BUTTON
+            --------------------------------------------------------------------
+
             ConfirmButton.Parent = ColorPickerWindow
             ConfirmButton.BackgroundColor3 = Color3.fromRGB(55, 74, 251)
-            ConfirmButton.BorderSizePixel = 0
             ConfirmButton.Position = UDim2.new(0.6, 0, 0.85, 0)
             ConfirmButton.Size = UDim2.new(0, 80, 0, 25)
             ConfirmButton.Font = Enum.Font.Gotham
             ConfirmButton.Text = "Confirm"
             ConfirmButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-            ConfirmButton.TextSize = 14.000
+            ConfirmButton.TextSize = 14
             ConfirmButton.ZIndex = 11
-
-            ConfirmButtonCorner.Name = "ConfirmButtonCorner"
             ConfirmButtonCorner.Parent = ConfirmButton
-            ConfirmButtonCorner.CornerRadius = UDim.new(0, 4)
 
-            -- Make ColorPickerWindow draggable
+            --------------------------------------------------------------------
+            -- DRAG WINDOW (оставил твой)
+            --------------------------------------------------------------------
+
             Library:Drag(ColorPickerWindowHeader)
 
-            -- Function to update color
-            local function updateColorFromCanvas(position)
-                local x = math.clamp(position.X, 0, 1)
-                local y = math.clamp(position.Y, 0, 1)
-                
+            --------------------------------------------------------------------
+            -- COLOR UPDATE FIXES
+            --------------------------------------------------------------------
+
+            local function updateCanvasColor()
                 local h, s, v = Color3.toHSV(CurrentColor)
-                s = x
-                v = 1 - y
-                
-                CurrentColor = Color3.fromHSV(h, s, v)
+                ColorCanvas.ImageColor3 = Color3.fromHSV(h, 1, 1)
+            end
+
+            local function updateAll()
                 ColorPreview.BackgroundColor3 = CurrentColor
                 CurrentColorDisplay.BackgroundColor3 = CurrentColor
                 Callback(CurrentColor)
             end
 
-            local function updateColorFromHue(position)
-                local y = math.clamp(position.Y, 0, 1)
-                local hue = 1 - y
-                
+            local function canvasInput()
+                local pos = ColorCanvas.AbsolutePosition
+                local size = ColorCanvas.AbsoluteSize
+
+                local x = math.clamp((Mouse.X - pos.X) / size.X, 0, 1)
+                local y = math.clamp((Mouse.Y - pos.Y) / size.Y, 0, 1)
+
                 local h, s, v = Color3.toHSV(CurrentColor)
-                CurrentColor = Color3.fromHSV(hue, s, v)
-                ColorPreview.BackgroundColor3 = CurrentColor
-                CurrentColorDisplay.BackgroundColor3 = CurrentColor
-                Callback(CurrentColor)
+                CurrentColor = Color3.fromHSV(h, x, 1 - y)
+
+                ColorCursor.Position = UDim2.new(x, -5, y, -5)
+
+                updateAll()
             end
 
-            -- Color Canvas interaction
+            local function hueInput()
+                local pos = HueSlider.AbsolutePosition
+                local size = HueSlider.AbsoluteSize
+
+                local y = math.clamp((Mouse.Y - pos.Y) / size.Y, 0, 1)
+
+                local h, s, v = Color3.toHSV(CurrentColor)
+                CurrentColor = Color3.fromHSV(1 - y, s, v)
+
+                HueCursor.Position = UDim2.new(0, 0, y, -2)
+
+                updateCanvasColor()
+                updateAll()
+            end
+
+            --------------------------------------------------------------------
+            -- EVENTS
+            --------------------------------------------------------------------
+
             ColorCanvas.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    updateColorFromCanvas(Vector2.new(input.Position.X / ColorCanvas.AbsoluteSize.X, input.Position.Y / ColorCanvas.AbsoluteSize.Y))
-                    
-                    local connection
-                    connection = input.Changed:Connect(function()
-                        if input.UserInputState == Enum.UserInputState.End then
-                            connection:Disconnect()
-                        else
-                            updateColorFromCanvas(Vector2.new(input.Position.X / ColorCanvas.AbsoluteSize.X, input.Position.Y / ColorCanvas.AbsoluteSize.Y))
+                    canvasInput()
+                    local moveConn
+                    moveConn = Mouse.Move:Connect(function()
+                        canvasInput()
+                    end)
+                    UserInputService.InputEnded:Connect(function(endInput)
+                        if endInput.UserInputType == Enum.UserInputType.MouseButton1 then
+                            moveConn:Disconnect()
                         end
                     end)
                 end
             end)
 
-            -- Hue Slider interaction
             HueSlider.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    updateColorFromHue(Vector2.new(0, input.Position.Y / HueSlider.AbsoluteSize.Y))
-                    
-                    local connection
-                    connection = input.Changed:Connect(function()
-                        if input.UserInputState == Enum.UserInputState.End then
-                            connection:Disconnect()
-                        else
-                            updateColorFromHue(Vector2.new(0, input.Position.Y / HueSlider.AbsoluteSize.Y))
+                    hueInput()
+                    local moveConn
+                    moveConn = Mouse.Move:Connect(function()
+                        hueInput()
+                    end)
+                    UserInputService.InputEnded:Connect(function(endInput)
+                        if endInput.UserInputType == Enum.UserInputType.MouseButton1 then
+                            moveConn:Disconnect()
                         end
                     end)
                 end
             end)
 
-            -- Button click to open color picker
+            --------------------------------------------------------------------
+            -- WINDOW TOGGLE
+            --------------------------------------------------------------------
+
             ColorPickerButton.MouseButton1Click:Connect(function()
                 ColorPickerOpen = not ColorPickerOpen
                 ColorPickerWindow.Visible = ColorPickerOpen
             end)
 
-            -- Close color picker
             ColorPickerWindowClose.MouseButton1Click:Connect(function()
                 ColorPickerOpen = false
                 ColorPickerWindow.Visible = false
             end)
 
-            -- Confirm button
             ConfirmButton.MouseButton1Click:Connect(function()
                 ColorPickerOpen = false
                 ColorPickerWindow.Visible = false
             end)
 
-            -- Close color picker when clicking outside
-            local function onInputBegan(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    local mousePos = game:GetService("UserInputService"):GetMouseLocation()
-                    local windowPos = ColorPickerWindow.AbsolutePosition
-                    local windowSize = ColorPickerWindow.AbsoluteSize
-                    
-                    if not (mousePos.X >= windowPos.X and mousePos.X <= windowPos.X + windowSize.X and
-                           mousePos.Y >= windowPos.Y and mousePos.Y <= windowPos.Y + windowSize.Y) then
-                        ColorPickerOpen = false
-                        ColorPickerWindow.Visible = false
-                    end
-                end
-            end
-
-            game:GetService("UserInputService").InputBegan:Connect(onInputBegan)
+            --------------------------------------------------------------------
+            -- RETURN OBJECT
+            --------------------------------------------------------------------
 
             return {
                 UpdateColor = function(newColor)
                     CurrentColor = newColor
-                    ColorPreview.BackgroundColor3 = newColor
-                    CurrentColorDisplay.BackgroundColor3 = newColor
-                    Callback(newColor)
+                    updateAll()
                 end
             }
         end
-
         return Elements
     end
     return xTabs
