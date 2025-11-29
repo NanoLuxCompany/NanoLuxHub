@@ -1618,3 +1618,4 @@ if LoadSettings() then
 
     updateHitboxes()
     UpdateAllESP()
+end
