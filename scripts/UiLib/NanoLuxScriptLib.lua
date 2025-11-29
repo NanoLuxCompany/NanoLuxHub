@@ -1033,6 +1033,7 @@ function Library:Create(xHubName,xGameName)
             local ColorPickerWindow = Instance.new("Frame")
             local ColorPickerWindowCorner = Instance.new("UICorner")
             local ColorPickerWindowHeader = Instance.new("Frame")
+            local ColorPickerWindowHeaderCorner = Instance.new("UICorner")
             local ColorPickerWindowTitle = Instance.new("TextLabel")
             local ColorPickerWindowClose = Instance.new("TextButton")
             local ColorPickerWindowCloseCorner = Instance.new("UICorner")
@@ -1041,13 +1042,19 @@ function Library:Create(xHubName,xGameName)
             local HexLabel = Instance.new("TextLabel")
 
             -- Canvas
-            local ColorCanvas = Instance.new("ImageLabel")
+            local ColorCanvas = Instance.new("Frame")
+            local ColorCanvasCorner = Instance.new("UICorner")
+            local ColorCanvasGradient = Instance.new("UIGradient")
+            local ColorCanvasOverlay = Instance.new("Frame")
+            local ColorCanvasOverlayCorner = Instance.new("UICorner")
+            local ColorCanvasOverlayGradient = Instance.new("UIGradient")
             local ColorCursor = Instance.new("Frame")
             local ColorCursorCorner = Instance.new("UICorner")
 
             -- Hue slider
             local HueSlider = Instance.new("Frame")
             local HueSliderCorner = Instance.new("UICorner")
+            local HueGradient = Instance.new("UIGradient")
             local HueCursor = Instance.new("Frame")
             local HueCursorCorner = Instance.new("UICorner")
 
@@ -1098,14 +1105,16 @@ function Library:Create(xHubName,xGameName)
             ColorPreviewCorner.Parent = ColorPreview
 
             -----------------------------------------------------
-            -- Window
+            -- Window - УВЕЛИЧЕН И СДВИНУТ ВПРАВО
             -----------------------------------------------------
             ColorPickerWindow.Parent = ScreenGui
-            ColorPickerWindow.BackgroundColor3 = Color3.fromRGB(45, 44, 64) -- Different color to stand out
-            ColorPickerWindow.Position = UDim2.new(0.35, 0, 0.3, 0)
-            ColorPickerWindow.Size = UDim2.new(0, 300, 0, 260)
+            ColorPickerWindow.BackgroundColor3 = Color3.fromRGB(45, 44, 64)
+            ColorPickerWindow.Position = UDim2.new(0.4, 0, 0.3, 0) -- Сдвинуто вправо
+            ColorPickerWindow.Size = UDim2.new(0, 350, 0, 260) -- Увеличен
             ColorPickerWindow.Visible = false
-            ColorPickerWindow.ZIndex = 100 -- High z-index to be on top
+            ColorPickerWindow.ZIndex = 100
+
+            ColorPickerWindowCorner.CornerRadius = UDim.new(0, 12)
             ColorPickerWindowCorner.Parent = ColorPickerWindow
 
             ColorPickerWindowHeader.Parent = ColorPickerWindow
@@ -1113,9 +1122,13 @@ function Library:Create(xHubName,xGameName)
             ColorPickerWindowHeader.Size = UDim2.new(1, 0, 0, 30)
             ColorPickerWindowHeader.ZIndex = 101
 
+            ColorPickerWindowHeaderCorner.CornerRadius = UDim.new(0, 12)
+            ColorPickerWindowHeaderCorner.Parent = ColorPickerWindowHeader
+
             ColorPickerWindowTitle.Parent = ColorPickerWindowHeader
             ColorPickerWindowTitle.BackgroundTransparency = 1
-            ColorPickerWindowTitle.Size = UDim2.new(0.8, 0, 1, 0)
+            ColorPickerWindowTitle.Size = UDim2.new(0.7, 0, 1, 0)
+            ColorPickerWindowTitle.Position = UDim2.new(0.05, 0, 0, 0) -- Сдвинуто от левого края
             ColorPickerWindowTitle.Font = Enum.Font.Gotham
             ColorPickerWindowTitle.Text = "Color Picker"
             ColorPickerWindowTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -1134,37 +1147,40 @@ function Library:Create(xHubName,xGameName)
             ColorPickerWindowCloseCorner.CornerRadius = UDim.new(0, 4)
             ColorPickerWindowCloseCorner.Parent = ColorPickerWindowClose
 
-            -- Make ONLY colorpicker draggable
+            -- Drag system FIXED - теперь работает нормально
             local ColorPickerDrag = Instance.new("TextButton")
             ColorPickerDrag.Parent = ColorPickerWindowHeader
             ColorPickerDrag.BackgroundTransparency = 1
-            ColorPickerDrag.Size = UDim2.new(0.9, 0, 1, 0)
+            ColorPickerDrag.Size = UDim2.new(0.8, 0, 1, 0)
             ColorPickerDrag.Text = ""
             ColorPickerDrag.ZIndex = 103
             
-            local ColorPickerStart
-            local ColorPickerStartPos
+            local dragging = false
+            local dragStart
+            local startPos
             
             ColorPickerDrag.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    ColorPickerStart = input.Position
-                    ColorPickerStartPos = ColorPickerWindow.Position
+                    dragging = true
+                    dragStart = input.Position
+                    startPos = ColorPickerWindow.Position
+                    
                     input.Changed:Connect(function()
                         if input.UserInputState == Enum.UserInputState.End then
-                            ColorPickerStart = nil
+                            dragging = false
                         end
                     end)
                 end
             end)
             
             ColorPickerDrag.InputChanged:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseMovement and ColorPickerStart then
-                    local Delta = input.Position - ColorPickerStart
+                if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
+                    local delta = input.Position - dragStart
                     ColorPickerWindow.Position = UDim2.new(
-                        ColorPickerStartPos.X.Scale, 
-                        ColorPickerStartPos.X.Offset + Delta.X,
-                        ColorPickerStartPos.Y.Scale, 
-                        ColorPickerStartPos.Y.Offset + Delta.Y
+                        startPos.X.Scale, 
+                        startPos.X.Offset + delta.X,
+                        startPos.Y.Scale, 
+                        startPos.Y.Offset + delta.Y
                     )
                 end
             end)
@@ -1184,16 +1200,18 @@ function Library:Create(xHubName,xGameName)
             HexLabel.ZIndex = 102
 
             -----------------------------------------------------
-            -- Canvas - FIXED COLORS (Red at left, proper gradient)
+            -- Canvas - РАБОТАЮЩИЙ ГРАДИЕНТ БЕЗ КАРТИНКИ
             -----------------------------------------------------
             ColorCanvas.Parent = ColorPickerWindow
-            ColorCanvas.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            ColorCanvas.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
             ColorCanvas.Position = UDim2.new(0.05, 0, 0.23, 0)
-            ColorCanvas.Size = UDim2.new(0, 150, 0, 150)
+            ColorCanvas.Size = UDim2.new(0, 200, 0, 150) -- Увеличен
             ColorCanvas.ZIndex = 101
-            
-            -- Create proper color canvas with red at left
-            local ColorCanvasGradient = Instance.new("UIGradient")
+
+            ColorCanvasCorner.CornerRadius = UDim.new(0, 6)
+            ColorCanvasCorner.Parent = ColorCanvas
+
+            -- Main hue gradient
             ColorCanvasGradient.Color = ColorSequence.new{
                 ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 0, 0)),
                 ColorSequenceKeypoint.new(0.17, Color3.fromRGB(255, 255, 0)),
@@ -1206,14 +1224,15 @@ function Library:Create(xHubName,xGameName)
             ColorCanvasGradient.Rotation = 0
             ColorCanvasGradient.Parent = ColorCanvas
 
-            -- Add white to black gradient overlay
-            local ColorCanvasOverlay = Instance.new("Frame")
+            -- White to black overlay
             ColorCanvasOverlay.Parent = ColorCanvas
             ColorCanvasOverlay.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             ColorCanvasOverlay.Size = UDim2.new(1, 0, 1, 0)
             ColorCanvasOverlay.ZIndex = 102
-            
-            local ColorCanvasOverlayGradient = Instance.new("UIGradient")
+
+            ColorCanvasOverlayCorner.CornerRadius = UDim.new(0, 6)
+            ColorCanvasOverlayCorner.Parent = ColorCanvasOverlay
+
             ColorCanvasOverlayGradient.Color = ColorSequence.new{
                 ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 255, 255)),
                 ColorSequenceKeypoint.new(1.00, Color3.fromRGB(0, 0, 0))
@@ -1231,20 +1250,21 @@ function Library:Create(xHubName,xGameName)
             ColorCursor.BorderColor3 = Color3.fromRGB(0, 0, 0)
             ColorCursor.Size = UDim2.new(0, 10, 0, 10)
             ColorCursor.ZIndex = 103
-            ColorCursorCorner.Parent = ColorCursor
             ColorCursorCorner.CornerRadius = UDim.new(1, 0)
+            ColorCursorCorner.Parent = ColorCursor
 
             -----------------------------------------------------
-            -- Hue slider
+            -- Hue slider - СДВИНУТ ВПРАВО
             -----------------------------------------------------
             HueSlider.Parent = ColorPickerWindow
             HueSlider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            HueSlider.Position = UDim2.new(0.63, 0, 0.23, 0)
+            HueSlider.Position = UDim2.new(0.75, 0, 0.23, 0) -- Сдвинут вправо
             HueSlider.Size = UDim2.new(0, 20, 0, 150)
             HueSlider.ZIndex = 101
+
+            HueSliderCorner.CornerRadius = UDim.new(0, 4)
             HueSliderCorner.Parent = HueSlider
 
-            local HueGradient = Instance.new("UIGradient")
             HueGradient.Color = ColorSequence.new{
                 ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 0, 0)),
                 ColorSequenceKeypoint.new(0.17, Color3.fromRGB(255, 255, 0)),
@@ -1263,29 +1283,35 @@ function Library:Create(xHubName,xGameName)
             HueCursor.BorderColor3 = Color3.fromRGB(0, 0, 0)
             HueCursor.Size = UDim2.new(1, 0, 0, 4)
             HueCursor.ZIndex = 102
+
+            HueCursorCorner.CornerRadius = UDim.new(0, 2)
             HueCursorCorner.Parent = HueCursor
 
             -----------------------------------------------------
-            -- Current COLOR (FIXED POSITION)
+            -- Current COLOR - СДВИНУТ ВПРАВО
             -----------------------------------------------------
             CurrentColorDisplay.Parent = ColorPickerWindow
             CurrentColorDisplay.BackgroundColor3 = DefaultColor
-            CurrentColorDisplay.Position = UDim2.new(0.63, 0, 0.65, 0)
-            CurrentColorDisplay.Size = UDim2.new(0, 80, 0, 30)
+            CurrentColorDisplay.Position = UDim2.new(0.75, 0, 0.65, 0) -- Сдвинут вправо
+            CurrentColorDisplay.Size = UDim2.new(0, 60, 0, 25)
             CurrentColorDisplay.ZIndex = 101
+
+            CurrentColorDisplayCorner.CornerRadius = UDim.new(0, 4)
             CurrentColorDisplayCorner.Parent = CurrentColorDisplay
 
             -----------------------------------------------------
-            -- Confirm button
+            -- Confirm button - СДВИНУТ ВПРАВО
             -----------------------------------------------------
             ConfirmButton.Parent = ColorPickerWindow
             ConfirmButton.BackgroundColor3 = Color3.fromRGB(55, 74, 251)
-            ConfirmButton.Position = UDim2.new(0.63, 0, 0.82, 0)
-            ConfirmButton.Size = UDim2.new(0, 80, 0, 25)
-            ConfirmButton.Text = "Confirm"
+            ConfirmButton.Position = UDim2.new(0.75, 0, 0.82, 0) -- Сдвинут вправо
+            ConfirmButton.Size = UDim2.new(0, 60, 0, 25)
+            ConfirmButton.Text = "OK"
             ConfirmButton.Font = Enum.Font.Gotham
             ConfirmButton.TextColor3 = Color3.fromRGB(255, 255, 255)
             ConfirmButton.ZIndex = 102
+
+            ConfirmButtonCorner.CornerRadius = UDim.new(0, 4)
             ConfirmButtonCorner.Parent = ConfirmButton
 
             -----------------------------------------------------
@@ -1363,7 +1389,7 @@ function Library:Create(xHubName,xGameName)
             end)
 
             -----------------------------------------------------
-            -- Open / Close
+            -- Open / Close - БЕЗ ЗАКРЫТИЯ ПРИ КЛИКЕ ВНЕ
             -----------------------------------------------------
             ColorPickerButton.MouseButton1Click:Connect(function()
                 ColorPickerOpen = not ColorPickerOpen
@@ -1378,21 +1404,6 @@ function Library:Create(xHubName,xGameName)
             ConfirmButton.MouseButton1Click:Connect(function()
                 ColorPickerOpen = false
                 ColorPickerWindow.Visible = false
-            end)
-
-            -- Close color picker when clicking outside
-            UserInputService.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 and ColorPickerOpen then
-                    local pos = ColorPickerWindow.AbsolutePosition
-                    local size = ColorPickerWindow.AbsoluteSize
-                    local mousePos = input.Position
-                    
-                    if mousePos.X < pos.X or mousePos.X > pos.X + size.X or
-                       mousePos.Y < pos.Y or mousePos.Y > pos.Y + size.Y then
-                        ColorPickerOpen = false
-                        ColorPickerWindow.Visible = false
-                    end
-                end
             end)
 
             -- Initialize cursor positions
