@@ -3,10 +3,9 @@ local LibraryName = tostring(math.random(100000,200000))..tostring(math.random(1
 
 
 function Library:Toggle()
-    if game.CoreGui:FindFirstChild(LibraryName).Enabled then 
-        game.CoreGui:FindFirstChild(LibraryName).Enabled = false
-    else 
-        game.CoreGui:FindFirstChild(LibraryName).Enabled = true
+    local screenGui = game.CoreGui:FindFirstChild(LibraryName)
+    if screenGui then
+        screenGui.Enabled = not screenGui.Enabled
     end
 end
 
@@ -55,6 +54,10 @@ end
 function Library:Create(xHubName,xGameName)
     local xHubName = xHubName or "UI Library"
     local xGameName = xGameName or "By Mapple#3045"
+    local oldUI = game.CoreGui:FindFirstChild(LibraryName)
+    if oldUI then
+        oldUI:Destroy()
+    end
     local ScreenGui = Instance.new("ScreenGui")
     local Main = Instance.new("Frame")
     local MainCorner = Instance.new("UICorner")
