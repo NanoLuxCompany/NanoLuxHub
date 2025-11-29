@@ -2,7 +2,18 @@
 -- UPDATED: autosave-on-change, improved autorinject (queue_on_teleport), keybinds saved
 local Notification = loadstring(game:HttpGet("https://raw.githubusercontent.com/NanoLuxCompany/NanoLuxHub/refs/heads/main/scripts/UiLib/NotificationLib.lua", true))()
 
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/NanoLuxCompany/NanoLuxHub/refs/heads/main/scripts/UiLib/NanoLuxScriptLib.lua"))()
+local Library
+local success, err = pcall(function()
+    Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/NanoLuxCompany/NanoLuxHub/refs/heads/main/scripts/UiLib/NanoLuxScriptLib.lua", true))()
+end)
+
+if not success or not Library then
+    warn("Failed to load UI Library: " .. tostring(err))
+    Library = {
+        Toggle = function() end,
+        Create = function() return {Tab = function() return {} end} end
+    }
+end
 local Window = Library:Create("NanoLuxHub","Ultimate Script")
 
 -- Services
