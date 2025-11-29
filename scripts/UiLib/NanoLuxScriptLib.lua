@@ -1008,7 +1008,7 @@ function Library:Create(xHubName,xGameName)
             return DropdownFunction
         end
 
-        -- New ColorPicker element        
+        -- New ColorPicker element (fixed & improved)
         function Elements:Colorpicker(Name, DefaultColor, Callback)
             local Name = Name or "Colorpicker"
             local DefaultColor = DefaultColor or Color3.fromRGB(255, 255, 255)
@@ -1017,7 +1017,11 @@ function Library:Create(xHubName,xGameName)
             local ColorPickerOpen = false
 
             local UserInputService = game:GetService("UserInputService")
+            local RunService = game:GetService("RunService")
             local Mouse = game.Players.LocalPlayer:GetMouse()
+
+            -- connection holders to avoid leaks
+            local activeConnections = {}
 
             -- Main Colorpicker row
             local ColorPickerFrame = Instance.new("Frame")
@@ -1039,18 +1043,18 @@ function Library:Create(xHubName,xGameName)
             -- HEX label
             local HexLabel = Instance.new("TextLabel")
 
-            -- Canvas
+            -- Canvas (SV) + cursor
             local ColorCanvas = Instance.new("ImageLabel")
             local ColorCursor = Instance.new("Frame")
             local ColorCursorCorner = Instance.new("UICorner")
 
-            -- Hue slider
+            -- Hue slider + cursor
             local HueSlider = Instance.new("Frame")
             local HueSliderCorner = Instance.new("UICorner")
             local HueCursor = Instance.new("Frame")
             local HueCursorCorner = Instance.new("UICorner")
 
-            -- Current color
+            -- Current color display
             local CurrentColorDisplay = Instance.new("Frame")
             local CurrentColorDisplayCorner = Instance.new("UICorner")
 
@@ -1082,7 +1086,7 @@ function Library:Create(xHubName,xGameName)
             ColorPickerNamePadding.PaddingLeft = UDim.new(0, 10)
 
             ColorPickerButton.Parent = ColorPickerFrame
-            ColorPickerButton.BackgroundColor3 = Color3.fromRGB(55, 55, 75)
+            ColorPickerButton.BackgroundColor3 = Color3.fromRGB(60, 62, 90) -- slightly brighter so it doesn't blend
             ColorPickerButton.Position = UDim2.new(0.610294104, 0, 0.1714, 0)
             ColorPickerButton.Size = UDim2.new(0, 150, 0, 23)
             ColorPickerButton.Text = ""
@@ -1099,18 +1103,19 @@ function Library:Create(xHubName,xGameName)
             -----------------------------------------------------
             -- Window
             -----------------------------------------------------
+            ColorPickerWindow.Name = tostring(Name).."_Window"
             ColorPickerWindow.Parent = ScreenGui
-            ColorPickerWindow.BackgroundColor3 = Color3.fromRGB(31, 30, 46)
+            ColorPickerWindow.BackgroundColor3 = Color3.fromRGB(29, 28, 44) -- contrast with main
             ColorPickerWindow.Position = UDim2.new(0.35, 0, 0.3, 0)
-            ColorPickerWindow.Size = UDim2.new(0, 300, 0, 260)
+            ColorPickerWindow.Size = UDim2.new(0, 320, 0, 280) -- slightly larger for spacing
             ColorPickerWindow.Visible = false
-            ColorPickerWindow.ZIndex = 10
+            ColorPickerWindow.ZIndex = 9999 -- keep on top so buttons aren't hidden
             ColorPickerWindowCorner.Parent = ColorPickerWindow
 
             ColorPickerWindowHeader.Parent = ColorPickerWindow
             ColorPickerWindowHeader.BackgroundColor3 = Color3.fromRGB(40, 42, 60)
             ColorPickerWindowHeader.Size = UDim2.new(1, 0, 0, 30)
-            ColorPickerWindowHeader.ZIndex = 11
+            ColorPickerWindowHeader.ZIndex = 10000
 
             ColorPickerWindowTitle.Parent = ColorPickerWindowHeader
             ColorPickerWindowTitle.BackgroundTransparency = 1
@@ -1123,10 +1128,11 @@ function Library:Create(xHubName,xGameName)
 
             ColorPickerWindowClose.Parent = ColorPickerWindowHeader
             ColorPickerWindowClose.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
-            ColorPickerWindowClose.Position = UDim2.new(0.9, 0, 0.1, 0)
+            ColorPickerWindowClose.Position = UDim2.new(0.92, 0, 0.1, 0)
             ColorPickerWindowClose.Size = UDim2.new(0, 20, 0, 20)
             ColorPickerWindowClose.Text = "X"
             ColorPickerWindowClose.TextColor3 = Color3.fromRGB(255, 255, 255)
+            ColorPickerWindowClose.ZIndex = 10001
 
             -- Make ONLY colorpicker draggable
             Library:Drag(ColorPickerWindowHeader)
@@ -1142,23 +1148,24 @@ function Library:Create(xHubName,xGameName)
             HexLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
             HexLabel.TextSize = 14
             HexLabel.TextXAlignment = Enum.TextXAlignment.Left
-            HexLabel.Text = "#FFFFFF"
-            HexLabel.ZIndex = 12
+            HexLabel.Text = toHex(DefaultColor)
+            HexLabel.ZIndex = 10000
 
             -----------------------------------------------------
-            -- Canvas
+            -- Canvas (SV)
             -----------------------------------------------------
             ColorCanvas.Parent = ColorPickerWindow
             ColorCanvas.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             ColorCanvas.Position = UDim2.new(0.05, 0, 0.23, 0)
-            ColorCanvas.Size = UDim2.new(0, 150, 0, 150)
-            ColorCanvas.Image = "rbxassetid://4155801252"
-            ColorCanvas.ZIndex = 11
+            ColorCanvas.Size = UDim2.new(0, 180, 0, 180)
+            ColorCanvas.Image = "rbxassetid://4155801252" -- keep existing texture (assumed SV texture)
+            ColorCanvas.ZIndex = 10000
+            ColorCanvas.ScaleType = Enum.ScaleType.Stretch
 
             ColorCursor.Parent = ColorCanvas
             ColorCursor.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            ColorCursor.Size = UDim2.new(0, 10, 0, 10)
-            ColorCursor.ZIndex = 12
+            ColorCursor.Size = UDim2.new(0, 12, 0, 12)
+            ColorCursor.ZIndex = 10002
             ColorCursorCorner.Parent = ColorCursor
             ColorCursorCorner.CornerRadius = UDim.new(1, 0)
 
@@ -1168,8 +1175,8 @@ function Library:Create(xHubName,xGameName)
             HueSlider.Parent = ColorPickerWindow
             HueSlider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             HueSlider.Position = UDim2.new(0.63, 0, 0.23, 0)
-            HueSlider.Size = UDim2.new(0, 20, 0, 150)
-            HueSlider.ZIndex = 11
+            HueSlider.Size = UDim2.new(0, 20, 0, 180)
+            HueSlider.ZIndex = 10000
             HueSliderCorner.Parent = HueSlider
 
             local HueGradient = Instance.new("UIGradient")
@@ -1188,7 +1195,7 @@ function Library:Create(xHubName,xGameName)
             HueCursor.Parent = HueSlider
             HueCursor.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             HueCursor.Size = UDim2.new(1, 0, 0, 4)
-            HueCursor.ZIndex = 12
+            HueCursor.ZIndex = 10002
             HueCursorCorner.Parent = HueCursor
 
             -----------------------------------------------------
@@ -1196,9 +1203,9 @@ function Library:Create(xHubName,xGameName)
             -----------------------------------------------------
             CurrentColorDisplay.Parent = ColorPickerWindow
             CurrentColorDisplay.BackgroundColor3 = DefaultColor
-            CurrentColorDisplay.Position = UDim2.new(0.63, 0, 0.65, 0)
-            CurrentColorDisplay.Size = UDim2.new(0, 80, 0, 30)
-            CurrentColorDisplay.ZIndex = 11
+            CurrentColorDisplay.Position = UDim2.new(0.63, 0, 0.68, 0)
+            CurrentColorDisplay.Size = UDim2.new(0, 90, 0, 34)
+            CurrentColorDisplay.ZIndex = 10000
             CurrentColorDisplayCorner.Parent = CurrentColorDisplay
 
             -----------------------------------------------------
@@ -1207,14 +1214,15 @@ function Library:Create(xHubName,xGameName)
             ConfirmButton.Parent = ColorPickerWindow
             ConfirmButton.BackgroundColor3 = Color3.fromRGB(55, 74, 251)
             ConfirmButton.Position = UDim2.new(0.63, 0, 0.82, 0)
-            ConfirmButton.Size = UDim2.new(0, 80, 0, 25)
+            ConfirmButton.Size = UDim2.new(0, 90, 0, 28)
             ConfirmButton.Text = "Confirm"
             ConfirmButton.Font = Enum.Font.Gotham
             ConfirmButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+            ConfirmButton.ZIndex = 10001
             ConfirmButtonCorner.Parent = ConfirmButton
 
             -----------------------------------------------------
-            -- Color update utils
+            -- Utility: convert Color3 to HEX
             -----------------------------------------------------
             local function toHex(c)
                 return string.format("#%02X%02X%02X",
@@ -1224,92 +1232,203 @@ function Library:Create(xHubName,xGameName)
                 )
             end
 
+            -----------------------------------------------------
+            -- Update visuals & cursors (does NOT call Callback)
+            -----------------------------------------------------
             local function updateAll()
+                -- update preview boxes and hex
                 ColorPreview.BackgroundColor3 = CurrentColor
                 CurrentColorDisplay.BackgroundColor3 = CurrentColor
                 HexLabel.Text = toHex(CurrentColor)
-                Callback(CurrentColor)
-            end
 
-            local function canvasInput()
-                local pos = ColorCanvas.AbsolutePosition
-                local size = ColorCanvas.AbsoluteSize
-
-                local x = math.clamp((Mouse.X - pos.X) / size.X, 0, 1)
-                local y = math.clamp((Mouse.Y - pos.Y) / size.Y, 0, 1)
-
+                -- update hue & sv cursor positions
                 local h, s, v = Color3.toHSV(CurrentColor)
-                CurrentColor = Color3.fromHSV(h, x, 1 - y)
 
-                ColorCursor.Position = UDim2.new(x, -5, y, -5)
-                updateAll()
-            end
+                -- Hue cursor (vertical slider) -> top = 0, bottom = 1
+                HueCursor.Position = UDim2.new(0, 0, h, -2)
 
-            local function hueInput()
-                local pos = HueSlider.AbsolutePosition
-                local size = HueSlider.AbsoluteSize
+                -- SV cursor: x = saturation, y = 1 - value (top = 1, bottom = 0)
+                ColorCursor.Position = UDim2.new(s, -6, 1 - v, -6)
 
-                local y = math.clamp((Mouse.Y - pos.Y) / size.Y, 0, 1)
-
-                local h, s, v = Color3.toHSV(CurrentColor)
-                CurrentColor = Color3.fromHSV(1 - y, s, v)
-
-                HueCursor.Position = UDim2.new(0, 0, y, -2)
-                updateAll()
+                -- update canvas tint according to hue (so SV square shows correct hue)
+                local hueColor = Color3.fromHSV(h, 1, 1)
+                -- ImageColor3 tints the texture (assumes the texture is neutral white SV base)
+                pcall(function()
+                    ColorCanvas.ImageColor3 = hueColor
+                end)
             end
 
             -----------------------------------------------------
-            -- Events
+            -- Input handlers using RunService for smooth dragging
+            -- Properly store & disconnect connections to avoid leaks
+            -----------------------------------------------------
+            local dragging = {
+                sv = false,
+                hue = false
+            }
+            local renderConn = nil
+
+            local function startRender()
+                if renderConn then return end
+                renderConn = RunService.RenderStepped:Connect(function()
+                    if dragging.sv then
+                        local loc = UserInputService:GetMouseLocation()
+                        local pos = ColorCanvas.AbsolutePosition
+                        local size = ColorCanvas.AbsoluteSize
+                        local x = math.clamp((loc.X - pos.X) / size.X, 0, 1)
+                        local y = math.clamp((loc.Y - pos.Y) / size.Y, 0, 1)
+                        local h, s, v = Color3.toHSV(CurrentColor)
+                        CurrentColor = Color3.fromHSV(h, x, 1 - y)
+                        updateAll()
+                    end
+                    if dragging.hue then
+                        local loc = UserInputService:GetMouseLocation()
+                        local pos = HueSlider.AbsolutePosition
+                        local size = HueSlider.AbsoluteSize
+                        local y = math.clamp((loc.Y - pos.Y) / size.Y, 0, 1)
+                        local h, s, v = Color3.toHSV(CurrentColor)
+                        -- natural mapping: top = 0 (red), bottom = 1
+                        local newH = y
+                        CurrentColor = Color3.fromHSV(newH, s, v)
+                        updateAll()
+                    end
+                end)
+                table.insert(activeConnections, renderConn)
+            end
+
+            local function stopRender()
+                if renderConn then
+                    renderConn:Disconnect()
+                    for i,con in ipairs(activeConnections) do
+                        if con == renderConn then
+                            table.remove(activeConnections, i)
+                            break
+                        end
+                    end
+                    renderConn = nil
+                end
+            end
+
+            -----------------------------------------------------
+            -- Canvas mouse events
             -----------------------------------------------------
             ColorCanvas.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    canvasInput()
-                    local moveConn
-                    moveConn = Mouse.Move:Connect(function() canvasInput() end)
-                    UserInputService.InputEnded:Connect(function(endInput)
-                        if endInput.UserInputType == Enum.UserInputType.MouseButton1 then
-                            moveConn:Disconnect()
-                        end
-                    end)
+                    dragging.sv = true
+                    startRender()
                 end
             end)
 
-            HueSlider.InputBegan:Connect(function(input)
+            ColorCanvas.InputEnded:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    hueInput()
-                    local moveConn
-                    moveConn = Mouse.Move:Connect(function() hueInput() end)
-                    UserInputService.InputEnded:Connect(function(endInput)
-                        if endInput.UserInputType == Enum.UserInputType.MouseButton1 then
-                            moveConn:Disconnect()
-                        end
-                    end)
+                    dragging.sv = false
+                    if not dragging.hue then
+                        stopRender()
+                    end
                 end
             end)
 
             -----------------------------------------------------
-            -- Open / Close
+            -- Hue slider mouse events
+            -----------------------------------------------------
+            HueSlider.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    dragging.hue = true
+                    startRender()
+                end
+            end)
+
+            HueSlider.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    dragging.hue = false
+                    if not dragging.sv then
+                        stopRender()
+                    end
+                end
+            end)
+
+            -----------------------------------------------------
+            -- Click outside to auto-close
+            -----------------------------------------------------
+            local outsideConn = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+                if ColorPickerOpen and not gameProcessed and input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    local loc = UserInputService:GetMouseLocation()
+                    local winPos = ColorPickerWindow.AbsolutePosition
+                    local winSize = ColorPickerWindow.AbsoluteSize
+                    if not (loc.X >= winPos.X and loc.X <= winPos.X + winSize.X and loc.Y >= winPos.Y and loc.Y <= winPos.Y + winSize.Y) then
+                        -- click is outside -> close
+                        ColorPickerOpen = false
+                        ColorPickerWindow.Visible = false
+                        -- stop any active dragging/render
+                        dragging.sv = false
+                        dragging.hue = false
+                        stopRender()
+                    end
+                end
+            end)
+            table.insert(activeConnections, outsideConn)
+
+            -----------------------------------------------------
+            -- Close / Confirm buttons
+            -----------------------------------------------------
+            ColorPickerWindowClose.MouseButton1Click:Connect(function()
+                ColorPickerOpen = false
+                ColorPickerWindow.Visible = false
+                dragging.sv = false
+                dragging.hue = false
+                stopRender()
+            end)
+
+            ConfirmButton.MouseButton1Click:Connect(function()
+                -- Finalize: call Callback with selected color
+                pcall(Callback, CurrentColor)
+                ColorPickerOpen = false
+                ColorPickerWindow.Visible = false
+                dragging.sv = false
+                dragging.hue = false
+                stopRender()
+            end)
+
+            -----------------------------------------------------
+            -- Toggle open/close from the small preview button
             -----------------------------------------------------
             ColorPickerButton.MouseButton1Click:Connect(function()
                 ColorPickerOpen = not ColorPickerOpen
                 ColorPickerWindow.Visible = ColorPickerOpen
-            end)
-
-            ColorPickerWindowClose.MouseButton1Click:Connect(function()
-                ColorPickerOpen = false
-                ColorPickerWindow.Visible = false
-            end)
-
-            ConfirmButton.MouseButton1Click:Connect(function()
-                ColorPickerOpen = false
-                ColorPickerWindow.Visible = false
+                if not ColorPickerOpen then
+                    dragging.sv = false
+                    dragging.hue = false
+                    stopRender()
+                else
+                    updateAll()
+                end
             end)
 
             -----------------------------------------------------
+            -- Ensure the window doesn't block dragging of main (we only drag the header)
+            -- and make sure ZIndex doesn't hide main buttons.
+            -----------------------------------------------------
+            -- already handled via ZIndex assignments above
+
+            -----------------------------------------------------
+            -- Public update method (keeps UI in sync if color changed externally)
+            -----------------------------------------------------
             return {
                 UpdateColor = function(newColor)
-                    CurrentColor = newColor
-                    updateAll()
+                    if typeof(newColor) == "Color3" then
+                        CurrentColor = newColor
+                        updateAll()
+                    end
+                end,
+                Destroy = function()
+                    -- cleanup connections
+                    for _,con in ipairs(activeConnections) do
+                        if con and con.Disconnect then
+                            pcall(function() con:Disconnect() end)
+                        end
+                    end
+                    activeConnections = {}
+                    stopRender()
                 end
             }
         end
