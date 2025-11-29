@@ -131,7 +131,7 @@ local function AutoReinject()
     SaveSettings()
     
     -- Attempt to queue script on teleport (exploit env dependent)
-    local QUEUE_URL = "https://raw.githubusercontent.com/NanoLuxCompany/NanoLuxHub/main/scripts/NanoLuxScript.lua"
+    local QUEUE_URL = "https://raw.githubusercontent.com/NanoLuxCompany/NanoLuxHub/refs/heads/main/scripts/nl.lua"
     if queue_on_teleport then
         pcall(function()
             -- queue to fetch and run the raw script after teleport
@@ -153,6 +153,28 @@ local function AutoReinject()
                 task.wait(1) -- Ждём немного после загрузки
                 if LoadSettings() then
                     Notification.new("success", "Auto-Inject", "Сохраненные настройки загружены после телепортации!", true, 3)
+                    hitboxEnabled = settings.hitboxEnabled
+                    hitboxSize = settings.hitboxSize
+                    hitboxTransparency = settings.hitboxTransparency
+                    FlingActive = settings.flingEnabled
+                    FlingTarget = settings.flingTarget
+                    TPTarget = settings.tpTarget
+                    CurrentWalkSpeed = settings.walkSpeed
+                    InfinityJump = settings.infinityJump
+                    NoclipActive = settings.noclipEnabled
+                    FlyActive = settings.flyEnabled
+                    AntiFlingActive = settings.antiFlingEnabled
+                    MAX_OTHER_VEL = settings.maxOtherVel
+                    MAX_SELF_VEL = settings.maxSelfVel
+                    SAVE_POS_THRESHOLD = settings.savePosThreshold
+                    NameESP = settings.nameESP
+                    BoxESP = settings.boxESP
+                    RadarESP = settings.radarESP
+                    ESPColors.Box = settings.boxColor
+                    ESPColors.Name = settings.nameColor
+                    ESPColors.Radar = settings.radarColor
+                    updateHitboxes()
+                    UpdateAllESP()
                 end
             end)
         end
@@ -220,9 +242,6 @@ local ESPColors = {
 
 -- UI Toggle State
 local UIToggled = false
-
--- Загружаем настройки при старте
-LoadSettings()
 
 -- Устанавливаем автосохранение на изменение settings
 -- (метатаблица вызывает SaveSettings() при любом присваивании)
