@@ -1272,6 +1272,7 @@ function Library:Create(xHubName,xGameName)
                 if renderConn then return end
                 renderConn = RunService.RenderStepped:Connect(function()
                     if dragging.sv then
+                        if not ColorCanvas or not ColorCanvas.Parent then return end
                         local loc = UserInputService:GetMouseLocation()
                         local pos = ColorCanvas.AbsolutePosition
                         local size = ColorCanvas.AbsoluteSize
@@ -1282,6 +1283,7 @@ function Library:Create(xHubName,xGameName)
                         updateAll()
                     end
                     if dragging.hue then
+                        if not HueSlider or not HueSlider.Parent then return end
                         local loc = UserInputService:GetMouseLocation()
                         local pos = HueSlider.AbsolutePosition
                         local size = HueSlider.AbsoluteSize
