@@ -1105,12 +1105,12 @@ function Library:Create(xHubName,xGameName)
             ColorPreviewCorner.Parent = ColorPreview
 
             -----------------------------------------------------
-            -- Window - УВЕЛИЧЕН И СДВИНУТ ВПРАВО
+            -- Window - НОРМАЛЬНЫЙ РАЗМЕР
             -----------------------------------------------------
             ColorPickerWindow.Parent = ScreenGui
             ColorPickerWindow.BackgroundColor3 = Color3.fromRGB(45, 44, 64)
-            ColorPickerWindow.Position = UDim2.new(0.4, 0, 0.3, 0) -- Сдвинуто вправо
-            ColorPickerWindow.Size = UDim2.new(0, 350, 0, 260) -- Увеличен
+            ColorPickerWindow.Position = UDim2.new(0.35, 0, 0.3, 0)
+            ColorPickerWindow.Size = UDim2.new(0, 300, 0, 260)
             ColorPickerWindow.Visible = false
             ColorPickerWindow.ZIndex = 100
 
@@ -1128,7 +1128,7 @@ function Library:Create(xHubName,xGameName)
             ColorPickerWindowTitle.Parent = ColorPickerWindowHeader
             ColorPickerWindowTitle.BackgroundTransparency = 1
             ColorPickerWindowTitle.Size = UDim2.new(0.7, 0, 1, 0)
-            ColorPickerWindowTitle.Position = UDim2.new(0.05, 0, 0, 0) -- Сдвинуто от левого края
+            ColorPickerWindowTitle.Position = UDim2.new(0.05, 0, 0, 0)
             ColorPickerWindowTitle.Font = Enum.Font.Gotham
             ColorPickerWindowTitle.Text = "Color Picker"
             ColorPickerWindowTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -1147,7 +1147,7 @@ function Library:Create(xHubName,xGameName)
             ColorPickerWindowCloseCorner.CornerRadius = UDim.new(0, 4)
             ColorPickerWindowCloseCorner.Parent = ColorPickerWindowClose
 
-            -- Drag system FIXED - теперь работает нормально
+            -- Drag system для ColorPicker
             local ColorPickerDrag = Instance.new("TextButton")
             ColorPickerDrag.Parent = ColorPickerWindowHeader
             ColorPickerDrag.BackgroundTransparency = 1
@@ -1200,12 +1200,12 @@ function Library:Create(xHubName,xGameName)
             HexLabel.ZIndex = 102
 
             -----------------------------------------------------
-            -- Canvas - РАБОТАЮЩИЙ ГРАДИЕНТ БЕЗ КАРТИНКИ
+            -- Canvas - РАБОТАЮЩИЙ ГРАДИЕНТ
             -----------------------------------------------------
             ColorCanvas.Parent = ColorPickerWindow
             ColorCanvas.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
             ColorCanvas.Position = UDim2.new(0.05, 0, 0.23, 0)
-            ColorCanvas.Size = UDim2.new(0, 200, 0, 150) -- Увеличен
+            ColorCanvas.Size = UDim2.new(0, 150, 0, 150)
             ColorCanvas.ZIndex = 101
 
             ColorCanvasCorner.CornerRadius = UDim.new(0, 6)
@@ -1254,11 +1254,11 @@ function Library:Create(xHubName,xGameName)
             ColorCursorCorner.Parent = ColorCursor
 
             -----------------------------------------------------
-            -- Hue slider - СДВИНУТ ВПРАВО
+            -- Hue slider - ВЛЕВО КАК НАДО
             -----------------------------------------------------
             HueSlider.Parent = ColorPickerWindow
             HueSlider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            HueSlider.Position = UDim2.new(0.75, 0, 0.23, 0) -- Сдвинут вправо
+            HueSlider.Position = UDim2.new(0.6, 0, 0.23, 0) -- Влево
             HueSlider.Size = UDim2.new(0, 20, 0, 150)
             HueSlider.ZIndex = 101
 
@@ -1288,25 +1288,25 @@ function Library:Create(xHubName,xGameName)
             HueCursorCorner.Parent = HueCursor
 
             -----------------------------------------------------
-            -- Current COLOR - СДВИНУТ ВПРАВО
+            -- Current COLOR - ВЛЕВО
             -----------------------------------------------------
             CurrentColorDisplay.Parent = ColorPickerWindow
             CurrentColorDisplay.BackgroundColor3 = DefaultColor
-            CurrentColorDisplay.Position = UDim2.new(0.75, 0, 0.65, 0) -- Сдвинут вправо
-            CurrentColorDisplay.Size = UDim2.new(0, 60, 0, 25)
+            CurrentColorDisplay.Position = UDim2.new(0.6, 0, 0.65, 0) -- Влево
+            CurrentColorDisplay.Size = UDim2.new(0, 80, 0, 30)
             CurrentColorDisplay.ZIndex = 101
 
             CurrentColorDisplayCorner.CornerRadius = UDim.new(0, 4)
             CurrentColorDisplayCorner.Parent = CurrentColorDisplay
 
             -----------------------------------------------------
-            -- Confirm button - СДВИНУТ ВПРАВО
+            -- Confirm button - ВЛЕВО И НОРМАЛЬНЫЙ ТЕКСТ
             -----------------------------------------------------
             ConfirmButton.Parent = ColorPickerWindow
             ConfirmButton.BackgroundColor3 = Color3.fromRGB(55, 74, 251)
-            ConfirmButton.Position = UDim2.new(0.75, 0, 0.82, 0) -- Сдвинут вправо
-            ConfirmButton.Size = UDim2.new(0, 60, 0, 25)
-            ConfirmButton.Text = "OK"
+            ConfirmButton.Position = UDim2.new(0.6, 0, 0.82, 0) -- Влево
+            ConfirmButton.Size = UDim2.new(0, 80, 0, 25)
+            ConfirmButton.Text = "Confirm" -- Нормальный текст
             ConfirmButton.Font = Enum.Font.Gotham
             ConfirmButton.TextColor3 = Color3.fromRGB(255, 255, 255)
             ConfirmButton.ZIndex = 102
@@ -1389,7 +1389,7 @@ function Library:Create(xHubName,xGameName)
             end)
 
             -----------------------------------------------------
-            -- Open / Close - БЕЗ ЗАКРЫТИЯ ПРИ КЛИКЕ ВНЕ
+            -- Open / Close
             -----------------------------------------------------
             ColorPickerButton.MouseButton1Click:Connect(function()
                 ColorPickerOpen = not ColorPickerOpen
