@@ -12,25 +12,20 @@ end
 
 function Library:Drag(obj)
     local UserInputService = game:GetService("UserInputService")
-
-    local gui = obj.Parent
-
+    
+    local gui = obj
+    
     local dragging
     local dragInput
     local dragStart
     local startPos
-
+    
     local function update(input)
         local delta = input.Position - dragStart
-        gui.Position = UDim2.new(
-            startPos.X.Scale,
-            startPos.X.Offset + delta.X,
-            startPos.Y.Scale,
-            startPos.Y.Offset + delta.Y
-        )
+        gui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
     end
-
-    obj.InputBegan:Connect(function(input)
+    
+    gui.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = true
             dragStart = input.Position
@@ -43,13 +38,13 @@ function Library:Drag(obj)
             end)
         end
     end)
-
-    obj.InputChanged:Connect(function(input)
+    
+    gui.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseMovement then
             dragInput = input
         end
     end)
-
+    
     UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
             update(input)
@@ -1105,7 +1100,7 @@ function Library:Create(xHubName,xGameName)
             ColorPreviewCorner.Parent = ColorPreview
 
             -----------------------------------------------------
-            -- Window - НОРМАЛЬНЫЙ РАЗМЕР
+            -- Window
             -----------------------------------------------------
             ColorPickerWindow.Parent = ScreenGui
             ColorPickerWindow.BackgroundColor3 = Color3.fromRGB(45, 44, 64)
@@ -1200,7 +1195,7 @@ function Library:Create(xHubName,xGameName)
             HexLabel.ZIndex = 102
 
             -----------------------------------------------------
-            -- Canvas - РАБОТАЮЩИЙ ГРАДИЕНТ
+            -- Canvas
             -----------------------------------------------------
             ColorCanvas.Parent = ColorPickerWindow
             ColorCanvas.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
@@ -1254,7 +1249,7 @@ function Library:Create(xHubName,xGameName)
             ColorCursorCorner.Parent = ColorCursor
 
             -----------------------------------------------------
-            -- Hue slider - ВЛЕВО КАК НАДО
+            -- Hue slider - ВЛЕВО
             -----------------------------------------------------
             HueSlider.Parent = ColorPickerWindow
             HueSlider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -1288,11 +1283,11 @@ function Library:Create(xHubName,xGameName)
             HueCursorCorner.Parent = HueCursor
 
             -----------------------------------------------------
-            -- Current COLOR - ВЛЕВО
+            -- Current COLOR - СПРАВА КАК БЫЛО
             -----------------------------------------------------
             CurrentColorDisplay.Parent = ColorPickerWindow
             CurrentColorDisplay.BackgroundColor3 = DefaultColor
-            CurrentColorDisplay.Position = UDim2.new(0.6, 0, 0.65, 0) -- Влево
+            CurrentColorDisplay.Position = UDim2.new(0.75, 0, 0.65, 0) -- Справа
             CurrentColorDisplay.Size = UDim2.new(0, 80, 0, 30)
             CurrentColorDisplay.ZIndex = 101
 
@@ -1300,13 +1295,13 @@ function Library:Create(xHubName,xGameName)
             CurrentColorDisplayCorner.Parent = CurrentColorDisplay
 
             -----------------------------------------------------
-            -- Confirm button - ВЛЕВО И НОРМАЛЬНЫЙ ТЕКСТ
+            -- Confirm button - СПРАВА КАК БЫЛО
             -----------------------------------------------------
             ConfirmButton.Parent = ColorPickerWindow
             ConfirmButton.BackgroundColor3 = Color3.fromRGB(55, 74, 251)
-            ConfirmButton.Position = UDim2.new(0.6, 0, 0.82, 0) -- Влево
+            ConfirmButton.Position = UDim2.new(0.75, 0, 0.82, 0) -- Справа
             ConfirmButton.Size = UDim2.new(0, 80, 0, 25)
-            ConfirmButton.Text = "Confirm" -- Нормальный текст
+            ConfirmButton.Text = "Confirm"
             ConfirmButton.Font = Enum.Font.Gotham
             ConfirmButton.TextColor3 = Color3.fromRGB(255, 255, 255)
             ConfirmButton.ZIndex = 102
