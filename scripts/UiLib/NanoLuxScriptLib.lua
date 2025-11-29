@@ -1287,7 +1287,7 @@ function Library:Create(xHubName,xGameName)
             -----------------------------------------------------
             CurrentColorDisplay.Parent = ColorPickerWindow
             CurrentColorDisplay.BackgroundColor3 = DefaultColor
-            CurrentColorDisplay.Position = UDim2.new(0.75, 0, 0.65, 0) -- Справа
+            CurrentColorDisplay.Position = UDim2.new(0.7, 0, 0.65, 0) -- Справа
             CurrentColorDisplay.Size = UDim2.new(0, 80, 0, 30)
             CurrentColorDisplay.ZIndex = 101
 
@@ -1299,7 +1299,7 @@ function Library:Create(xHubName,xGameName)
             -----------------------------------------------------
             ConfirmButton.Parent = ColorPickerWindow
             ConfirmButton.BackgroundColor3 = Color3.fromRGB(55, 74, 251)
-            ConfirmButton.Position = UDim2.new(0.75, 0, 0.82, 0) -- Справа
+            ConfirmButton.Position = UDim2.new(0.7, 0, 0.82, 0) -- Справа
             ConfirmButton.Size = UDim2.new(0, 80, 0, 25)
             ConfirmButton.Text = "Confirm"
             ConfirmButton.Font = Enum.Font.Gotham
