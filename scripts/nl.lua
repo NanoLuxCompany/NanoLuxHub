@@ -152,8 +152,7 @@ local function AutoReinject()
                 -- Игрок прибыл после телепортации - загружаем настройки
                 task.wait(1) -- Ждём немного после загрузки
                 if LoadSettings() then
-                    Notification.new("success", "Auto-Inject", "Сохраненные настройки загружены после телепортации!", true, 3)
-
+					ApplySettings()
                 end
             end)
         end
@@ -164,7 +163,7 @@ local function AutoReinject()
         task.wait(3) -- Ждём полной загрузки игры
         
         if LoadSettings() then
-            Notification.new("success", "Auto-Inject", "Сохраненные настройки загружены!", true, 3)
+			ApplySettings()
         end
     end)
     
@@ -1231,6 +1230,47 @@ function StopRadarESP()
     if RadarLocalDot then pcall(function() RadarLocalDot:Remove() end); RadarLocalDot = nil end
 end
 
+function ApplySettings()
+    hitboxEnabled = settings.hitboxEnabled
+    hitboxSize = settings.hitboxSize
+    hitboxTransparency = settings.hitboxTransparency
+
+    FlingActive = settings.flingEnabled
+    FlingTarget = settings.flingTarget
+    TPTarget = settings.tpTarget
+
+    CurrentWalkSpeed = settings.walkSpeed
+    InfinityJump = settings.infinityJump
+    NoclipActive = settings.noclipEnabled
+    FlyActive = settings.flyEnabled
+
+    AntiFlingActive = settings.antiFlingEnabled
+    MAX_OTHER_VEL = settings.maxOtherVel
+    MAX_SELF_VEL = settings.maxSelfVel
+    SAVE_POS_THRESHOLD = settings.savePosThreshold
+
+    NameESP = settings.nameESP
+    BoxESP = settings.boxESP
+    RadarESP = settings.radarESP
+    ESPColors.Box = settings.boxColor
+    ESPColors.Name = settings.nameColor
+    ESPColors.Radar = settings.radarColor
+
+    -- запускаем системы
+    if hitboxEnabled then HitboxConnection = RunService.Stepped:Connect(updateHitboxes) end
+    updateHitboxes()
+
+    if NoclipActive then StartNoclip() end
+    if FlyActive then StartFlying() end
+    if AntiFlingActive then StartAntiFling() end
+
+    if NameESP then UpdateAllESP() end
+    if BoxESP then StartBoxESP() end
+    if RadarESP then StartRadarESP() end
+	Notification.new("success", "Auto-Inject", "Сохраненные настройки загружены!", true, 3)
+end
+
+
 function CreateRadarDot(player)
     local dot = Drawing.new("Circle")
     dot.Visible = false
@@ -1590,32 +1630,3 @@ game:GetService("UserInputService").WindowFocusReleased:Connect(function()
 end)
 
 Notification.new("success", "NanoLuxHub", "Auto-Inject system loaded! Settings will persist through teleports.", true, 5)
-
-if LoadSettings() then
-    Notification.new("success", "Settings", "Настройки загружены!", true, 3)
-        
-    -- Применяем загруженные настройки
-    hitboxEnabled = settings.hitboxEnabled
-    hitboxSize = settings.hitboxSize
-    hitboxTransparency = settings.hitboxTransparency
-    FlingActive = settings.flingEnabled
-    FlingTarget = settings.flingTarget
-    TPTarget = settings.tpTarget
-    CurrentWalkSpeed = settings.walkSpeed
-    InfinityJump = settings.infinityJump
-    NoclipActive = settings.noclipEnabled
-    FlyActive = settings.flyEnabled
-    AntiFlingActive = settings.antiFlingEnabled
-    MAX_OTHER_VEL = settings.maxOtherVel
-    MAX_SELF_VEL = settings.maxSelfVel
-    SAVE_POS_THRESHOLD = settings.savePosThreshold
-    NameESP = settings.nameESP
-    BoxESP = settings.boxESP
-    RadarESP = settings.radarESP
-    ESPColors.Box = settings.boxColor
-    ESPColors.Name = settings.nameColor
-    ESPColors.Radar = settings.radarColor
-
-    updateHitboxes()
-    UpdateAllESP()
-end
