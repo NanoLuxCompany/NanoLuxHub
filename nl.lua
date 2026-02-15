@@ -241,6 +241,9 @@ local ESPColors = {
 -- UI Toggle State
 local UIToggled = false
 
+-- Флаг выгрузки: циклы (списки игроков, ESP) проверяют его и выходят
+local ScriptUnloaded = false
+
 -- Загружаем настройки при старте
 LoadSettings()
 
@@ -1904,6 +1907,7 @@ end)
 spawn(function()
     while true do
         task.wait(3)
+        if ScriptUnloaded then break end
         UpdatePlayerList()
     end
 end)
@@ -1912,6 +1916,7 @@ end)
 spawn(function()
     while true do
         task.wait(5)
+        if ScriptUnloaded then break end
         if NameESP then
             UpdateAllESP()
         end
@@ -1920,40 +1925,36 @@ end)
 
 -- Full Script Unload Function
 local function UnloadScript()
+    ScriptUnloaded = true
+
     -- Save settings before unloading
     SaveSettings()
-    
-    -- Stop all active features
+
+    -- Stop all RunService connections
     if HitboxConnection then
         HitboxConnection:Disconnect()
         HitboxConnection = nil
     end
-    
     if NoclipConnection then
         NoclipConnection:Disconnect()
         NoclipConnection = nil
     end
-    
     if FlyConnection then
         FlyConnection:Disconnect()
         FlyConnection = nil
     end
-    
     if BodyVelocity then
         BodyVelocity:Destroy()
         BodyVelocity = nil
     end
-    
     if WalkSpeedConnection then
         WalkSpeedConnection:Disconnect()
         WalkSpeedConnection = nil
     end
-    
     if AntiFlingConnection then
         AntiFlingConnection:Disconnect()
         AntiFlingConnection = nil
     end
-    
     if AimTargetConnection then
         AimTargetConnection:Disconnect()
         AimTargetConnection = nil
@@ -1962,37 +1963,47 @@ local function UnloadScript()
         AimTargetBodyPosition:Destroy()
         AimTargetBodyPosition = nil
     end
-    
+
     -- Stop Fling
     StopFling()
-    
-    -- Stop ESP
+
+    -- Stop ESP полностью
+    NameESP = false
+    BoxESP = false
+    RadarESP = false
     StopBoxESP()
     StopRadarESP()
     for _, esp in pairs(ESPPlayers) do
-        if esp then
-            esp:Destroy()
+        if esp and esp.Parent then
+            pcall(function() esp:Destroy() end)
         end
     end
     ESPPlayers = {}
-    
-    -- Clean up hitbox parts
+
+    -- Хитбоксы: удалить все части из hitboxPartsByPlayer и сбросить размеры игроков
+    for player, parts in pairs(hitboxPartsByPlayer) do
+        if parts then
+            for _, part in pairs(parts) do
+                if part and part.Parent then
+                    pcall(function() part:Destroy() end)
+                end
+            end
+        end
+    end
+    hitboxPartsByPlayer = {}
     for _, part in pairs(hitboxParts) do
         if part and part.Parent then
-            part:Destroy()
+            pcall(function() part:Destroy() end)
         end
     end
     hitboxParts = {}
-    
-    -- Reset player speed
+    hitboxEnabled = false
+    updateHitboxes()
+
+    -- Сброс скорости и коллизий
     if Player.Character and Player.Character:FindFirstChildOfClass("Humanoid") then
         Player.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = 16
     end
-    
-    -- Reset hitboxes
-    updateHitboxes()
-    
-    -- Reset noclip
     if Player.Character then
         for _, part in pairs(Player.Character:GetChildren()) do
             if part:IsA("BasePart") then
@@ -2000,10 +2011,9 @@ local function UnloadScript()
             end
         end
     end
-    
-    -- Destroy UI
+
+    -- Уничтожить основное окно (NanoLuxHub GUI)
     pcall(function()
-        -- Find and destroy the ScreenGui
         for _, gui in pairs(game.CoreGui:GetChildren()) do
             if gui:IsA("ScreenGui") and gui:FindFirstChild("Main") then
                 gui:Destroy()
@@ -2011,25 +2021,30 @@ local function UnloadScript()
             end
         end
     end)
-    
-    -- Clear all variables
+
     FlingActive = false
     NoclipActive = false
     FlyActive = false
     AimTargetActive = false
-    hitboxEnabled = false
-    
-    Notification.new("info", "NanoLuxHub", "Скрипт полностью выгружен", true, 3)
-    
-    -- Wait a bit for notification to show, then clear script
-    task.wait(1)
-    
-    -- Clear script from memory
-    for i, v in pairs(getgenv()) do
-        if type(v) == "function" and debug.getinfo(v).source:find("NanoLuxScript") then
-            getgenv()[i] = nil
+
+    -- Показать уведомление о выгрузке, затем уничтожить GUI уведомлений
+    pcall(function()
+        Notification.new("info", "NanoLuxHub", "Скрипт полностью выгружен", true, 3)
+    end)
+    task.wait(1.5)
+    pcall(function()
+        local notifGui = game.CoreGui:FindFirstChild("JxereasNotifications")
+        if notifGui then notifGui:Destroy() end
+    end)
+
+    -- Очистка из памяти (если поддерживается)
+    pcall(function()
+        for i, v in pairs(getgenv()) do
+            if type(v) == "function" and debug.getinfo(v).source:find("NanoLuxScript") then
+                getgenv()[i] = nil
+            end
         end
-    end
+    end)
 end
 
 -- Кнопка закрыть вызывает анхук через callback в библиотеке
