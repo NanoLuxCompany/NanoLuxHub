@@ -293,6 +293,7 @@ local function createHitboxParts(player, rootPart)
                 subPart.CanCollide = false
                 subPart.Anchored = true
                 subPart.CollisionGroup = "PlayerHitbox"
+                pcall(function() subPart.CanQuery = false end)
                 subPart.Parent = player.Character
                 
                 local offset = Vector3.new(x * spacing, y * spacing, z * spacing)
@@ -535,27 +536,21 @@ function StartAimTarget()
     local thrp = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
     if not myhrp or not thrp then return end
     
-    -- Используем BodyPosition чтобы орбита не сбрасывалась сервером/физикой
-    if AimTargetBodyPosition then AimTargetBodyPosition:Destroy() end
-    AimTargetBodyPosition = Instance.new("BodyPosition")
-    AimTargetBodyPosition.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-    AimTargetBodyPosition.P = 20000
-    AimTargetBodyPosition.D = 500
-    AimTargetBodyPosition.Parent = myhrp
+    -- Без BodyPosition — только CFrame, чтобы не откидывало за карту; небольшой радиус орбиты
+    if AimTargetBodyPosition then
+        AimTargetBodyPosition:Destroy()
+        AimTargetBodyPosition = nil
+    end
     
-    local radius = 5
-    local height = 3
-    local rotationSpeed = 0.12
+    local radius = 4
+    local height = 2
+    local rotationSpeed = 0.08
     
-    -- Первая телепортация к цели
-    myhrp.CFrame = thrp.CFrame + Vector3.new(0, height, 0)
+    -- Старт рядом с целью
+    myhrp.CFrame = thrp.CFrame + Vector3.new(radius, height, 0)
     
     AimTargetConnection = RunService.Heartbeat:Connect(function()
         if not AimTargetActive or not Player.Character or not Player.Character:FindFirstChild("HumanoidRootPart") then
-            StopAimTarget()
-            return
-        end
-        if not AimTargetBodyPosition or not AimTargetBodyPosition.Parent then
             StopAimTarget()
             return
         end
@@ -579,16 +574,13 @@ function StartAimTarget()
         local trp = target.Character:FindFirstChild("HumanoidRootPart")
         if not root or not trp then return end
         
-        -- Кружение: приращиваем угол и считаем позицию орбиты
+        local targetPos = trp.Position
         AimTargetAngle = AimTargetAngle + rotationSpeed
         local x = math.cos(AimTargetAngle) * radius
         local z = math.sin(AimTargetAngle) * radius
-        local targetPos = trp.Position
         local orbitPos = targetPos + Vector3.new(x, height, z)
         
-        AimTargetBodyPosition.Position = orbitPos
-        -- Поворачиваем персонажа лицом к цели
-        root.CFrame = CFrame.lookAt(root.Position, targetPos)
+        root.CFrame = CFrame.lookAt(orbitPos, targetPos)
     end)
 end
 
@@ -2011,6 +2003,16 @@ local function UnloadScript()
             end
         end
     end
+
+    -- Отключить горячие клавиши (noclip, fly, toggle UI)
+    pcall(function()
+        if Library and Library._keybindConnections then
+            for _, conn in pairs(Library._keybindConnections) do
+                if conn and conn.Connected then conn:Disconnect() end
+            end
+            Library._keybindConnections = {}
+        end
+    end)
 
     -- Уничтожить основное окно (NanoLuxHub GUI)
     pcall(function()
