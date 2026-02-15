@@ -1,4 +1,5 @@
 local Library = {}
+Library._keybindConnections = {}
 local LibraryName = tostring(math.random(100000,200000))..tostring(math.random(100000,200000))..tostring(math.random(100000,200000))
 
 
@@ -778,13 +779,15 @@ function Library:Create(xHubName,xGameName)
                 end
             end)
     
-            game:GetService("UserInputService").InputBegan:connect(function(a, gp) 
+            local keyConn = game:GetService("UserInputService").InputBegan:Connect(function(a, gp) 
                 if not gp then 
                     if a.KeyCode.Name == Keyx then 
                         Callback()
                     end
                 end
             end)
+            if not Library._keybindConnections then Library._keybindConnections = {} end
+            table.insert(Library._keybindConnections, keyConn)
         end
 
         function Elements:Dropdown(Name,Listx,Callback)
@@ -922,6 +925,7 @@ function Library:Create(xHubName,xGameName)
                 else 
                     opened = true
                     updateDropListPosition()
+                    DropList.CanvasPosition = Vector2.new(0, 0)
                     DropList.Visible = true
                     updateDropListSize()
                     game:GetService("TweenService"):Create(DropdownIcon, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
@@ -940,16 +944,23 @@ function Library:Create(xHubName,xGameName)
             for i,v in pairs(Listx) do 
                 local Option = Instance.new("TextButton")
                 local OptionCorner = Instance.new("UICorner")
+                local OptionPadding = Instance.new("UIPadding")
                 
                 Option.Name = tostring(v).."_Option"
                 Option.Parent = DropList
                 Option.BackgroundColor3 = Color3.fromRGB(40, 42, 60)
                 Option.Size = UDim2.new(0, 408, 0, 35)
                 Option.Font = Enum.Font.Gotham
-                Option.Text = v
+                Option.Text = tostring(v)
                 Option.TextColor3 = Color3.fromRGB(255, 255, 255)
-                Option.TextSize = 16.000
+                Option.TextSize = 15
+                Option.TextXAlignment = Enum.TextXAlignment.Left
+                Option.TextYAlignment = Enum.TextYAlignment.Center
+                Option.TextTruncate = Enum.TextTruncate.None
+                Option.ClipsDescendants = false
                 Option.ZIndex = 101
+                OptionPadding.PaddingLeft = UDim.new(0, 10)
+                OptionPadding.Parent = Option
 
                 OptionCorner.Name = "OptionCorner"
                 OptionCorner.Parent = Option
@@ -998,16 +1009,23 @@ function Library:Create(xHubName,xGameName)
                 for i,v in pairs(List) do 
                     local Option = Instance.new("TextButton")
                     local OptionCorner = Instance.new("UICorner")
+                    local OptionPadding = Instance.new("UIPadding")
                     
                     Option.Name = tostring(v).."_Option"
                     Option.Parent = DropList
                     Option.BackgroundColor3 = Color3.fromRGB(40, 42, 60)
                     Option.Size = UDim2.new(0, 408, 0, 35)
                     Option.Font = Enum.Font.Gotham
-                    Option.Text = v
+                    Option.Text = tostring(v)
                     Option.TextColor3 = Color3.fromRGB(255, 255, 255)
-                    Option.TextSize = 16.000
+                    Option.TextSize = 15
+                    Option.TextXAlignment = Enum.TextXAlignment.Left
+                    Option.TextYAlignment = Enum.TextYAlignment.Center
+                    Option.TextTruncate = Enum.TextTruncate.None
+                    Option.ClipsDescendants = false
                     Option.ZIndex = 101
+                    OptionPadding.PaddingLeft = UDim.new(0, 10)
+                    OptionPadding.Parent = Option
 
                     OptionCorner.Name = "OptionCorner"
                     OptionCorner.Parent = Option
