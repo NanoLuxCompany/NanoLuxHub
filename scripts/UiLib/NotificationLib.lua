@@ -77,7 +77,7 @@ local function createNotificationTemplate(name, bgColor, severityColor, icon, de
     hideSeverityCornerFrame.Position = UDim2.new(0.5, 0, 0, 0)
     hideSeverityCornerFrame.Size = UDim2.new(0.5, 0, 1, 0)
     
-    -- Иконка (если есть) + обводка чтобы не выглядело плоским
+    -- Иконка (если есть); обводку не добавляем — можно заменить на свои ассеты
     if icon then
         local image = Instance.new("ImageLabel")
         image.Name = "image"
@@ -88,13 +88,6 @@ local function createNotificationTemplate(name, bgColor, severityColor, icon, de
         image.Size = UDim2.new(0, 20, 0, 20)
         image.Image = icon
         image.ImageColor3 = severityColor
-        local stroke = Instance.new("UIStroke")
-        stroke.Name = "IconStroke"
-        stroke.Parent = image
-        stroke.Color = Color3.fromRGB(20, 20, 25)
-        stroke.Thickness = 1.5
-        stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-        stroke.Transparency = 0.3
     end
     
     -- Область с текстом
