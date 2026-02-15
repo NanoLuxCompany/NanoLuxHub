@@ -890,14 +890,14 @@ function Library:Create(xHubName,xGameName)
                 }):Play()
             end)
 
-            -- Позиция списка: вниз от кнопки; если не влезает в экран — открываем вверх (чтобы выходил за рамки окна)
+            -- Позиция списка: вниз от кнопки; если не влезает в экран — открываем вверх
             local function updateDropListPosition()
                 if not DropdownFrame or not DropdownFrame.Parent then return end
                 local framePos = DropdownFrame.AbsolutePosition
                 local frameSize = DropdownFrame.AbsoluteSize
                 local listHeight = math.min(DropListLayout.AbsoluteContentSize.Y, 200)
-                local viewportY = game:GetService("CoreGui"):GetGuiInset().Y
-                local viewportH = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize.Y or 720
+                local cam = workspace.CurrentCamera
+                local viewportH = (cam and cam.ViewportSize.Y) or 720
                 -- открывать вверх, если вниз не влезает
                 if framePos.Y + frameSize.Y + listHeight > viewportH - 10 then
                     DropList.AnchorPoint = Vector2.new(0, 1)
