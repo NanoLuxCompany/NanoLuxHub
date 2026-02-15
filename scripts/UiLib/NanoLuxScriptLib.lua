@@ -3,11 +3,9 @@ local LibraryName = tostring(math.random(100000,200000))..tostring(math.random(1
 
 
 function Library:Toggle()
-    if game.CoreGui:FindFirstChild(LibraryName).Enabled then 
-        game.CoreGui:FindFirstChild(LibraryName).Enabled = false
-    else 
-        game.CoreGui:FindFirstChild(LibraryName).Enabled = true
-    end
+    local gui = game.CoreGui:FindFirstChild(LibraryName)
+    if not gui then return end
+    gui.Enabled = not gui.Enabled
 end
 
 function Library:Drag(obj)
@@ -206,9 +204,14 @@ function Library:Create(xHubName,xGameName)
     MinimizeButtonCorner.Name = "MinimizeButtonCorner"
     MinimizeButtonCorner.Parent = MinimizeButton
 
-    -- Close button functionality
+    -- Close button: вызываем анхук (если задан), затем уничтожаем GUI
     CloseButton.MouseButton1Click:Connect(function()
-        ScreenGui:Destroy()
+        if Library._onCloseCallback and type(Library._onCloseCallback) == "function" then
+            pcall(Library._onCloseCallback)
+        end
+        if ScreenGui.Parent then
+            ScreenGui:Destroy()
+        end
     end)
 
     CloseButton.MouseEnter:Connect(function()
@@ -849,15 +852,16 @@ function Library:Create(xHubName,xGameName)
             DropdownButton.ZIndex = 13
 
             DropList.Name = "DropList"
-            DropList.Parent = DropdownFrame
+            -- Parent to ScreenGui instead of DropdownFrame to allow overflow
+            DropList.Parent = ScreenGui
             DropList.BackgroundColor3 = Color3.fromRGB(40, 42, 60)
             DropList.BorderSizePixel = 0
-            DropList.Position = UDim2.new(0, 0, 1, 0)
             DropList.Size = UDim2.new(0, 408, 0, 0)
             DropList.ScrollBarThickness = 8 -- Increased scrollbar thickness
             DropList.Visible = false
-            DropList.ZIndex = 100
+            DropList.ZIndex = 1000 -- High ZIndex to appear above everything
             DropList.CanvasSize = UDim2.new(0, 0, 0, 0)
+            DropList.ClipsDescendants = true
 
             DropListLayout.Name = "DropListLayout"
             DropListLayout.Parent = DropList
@@ -886,6 +890,24 @@ function Library:Create(xHubName,xGameName)
                 }):Play()
             end)
 
+            -- Позиция списка: вниз от кнопки; если не влезает в экран — открываем вверх (чтобы выходил за рамки окна)
+            local function updateDropListPosition()
+                if not DropdownFrame or not DropdownFrame.Parent then return end
+                local framePos = DropdownFrame.AbsolutePosition
+                local frameSize = DropdownFrame.AbsoluteSize
+                local listHeight = math.min(DropListLayout.AbsoluteContentSize.Y, 200)
+                local viewportY = game:GetService("CoreGui"):GetGuiInset().Y
+                local viewportH = workspace.CurrentCamera and workspace.CurrentCamera.ViewportSize.Y or 720
+                -- открывать вверх, если вниз не влезает
+                if framePos.Y + frameSize.Y + listHeight > viewportH - 10 then
+                    DropList.AnchorPoint = Vector2.new(0, 1)
+                    DropList.Position = UDim2.new(0, framePos.X, 0, framePos.Y)
+                else
+                    DropList.AnchorPoint = Vector2.new(0, 0)
+                    DropList.Position = UDim2.new(0, framePos.X, 0, framePos.Y + frameSize.Y)
+                end
+            end
+            
             DropdownButton.MouseButton1Down:Connect(function()
                 if opened then 
                     opened = false
@@ -899,12 +921,20 @@ function Library:Create(xHubName,xGameName)
                     DropList.Visible = false
                 else 
                     opened = true
+                    updateDropListPosition()
                     DropList.Visible = true
                     updateDropListSize()
                     game:GetService("TweenService"):Create(DropdownIcon, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
                         ImageColor3 = Color3.fromRGB(55, 74, 251)
                     }):Play()
                 end 
+            end)
+            
+            -- Update position when frame moves
+            DropdownFrame:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
+                if opened then
+                    updateDropListPosition()
+                end
             end)
 
             for i,v in pairs(Listx) do 
