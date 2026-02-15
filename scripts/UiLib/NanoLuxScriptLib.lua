@@ -3,9 +3,10 @@ local LibraryName = tostring(math.random(100000,200000))..tostring(math.random(1
 
 
 function Library:Toggle()
-    local screenGui = game.CoreGui:FindFirstChild(LibraryName)
-    if screenGui then
-        screenGui.Enabled = not screenGui.Enabled
+    if game.CoreGui:FindFirstChild(LibraryName).Enabled then 
+        game.CoreGui:FindFirstChild(LibraryName).Enabled = false
+    else 
+        game.CoreGui:FindFirstChild(LibraryName).Enabled = true
     end
 end
 
@@ -54,10 +55,6 @@ end
 function Library:Create(xHubName,xGameName)
     local xHubName = xHubName or "UI Library"
     local xGameName = xGameName or "By Mapple#3045"
-    local oldUI = game.CoreGui:FindFirstChild(LibraryName)
-    if oldUI then
-        oldUI:Destroy()
-    end
     local ScreenGui = Instance.new("ScreenGui")
     local Main = Instance.new("Frame")
     local MainCorner = Instance.new("UICorner")
@@ -503,8 +500,8 @@ function Library:Create(xHubName,xGameName)
             ToggleCircle.SliceCenter = Rect.new(100, 100, 100, 100)
             ToggleCircle.SliceScale = 0.120
 
-            ToggleButton.MouseButton1Down:Connect(function()
-                ToggleEnabled = not ToggleEnabled
+            local function updateToggleState(state)
+                ToggleEnabled = state
                 if ToggleEnabled then 
                     game:GetService("TweenService"):Create(ToggleF, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(55, 74, 251)}):Play() 
                     game:GetService("TweenService"):Create(ToggleCircle, TweenInfo.new(0.3), {Position = UDim2.new(0.559, 0,0.153, 0)}):Play() 
@@ -512,8 +509,26 @@ function Library:Create(xHubName,xGameName)
                     game:GetService("TweenService"):Create(ToggleF, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(55, 55, 75)}):Play() 
                     game:GetService("TweenService"):Create(ToggleCircle, TweenInfo.new(0.3), {Position = UDim2.new(0.093, 0,0.153, 0)}):Play() 
                 end
+            end
+            
+            ToggleButton.MouseButton1Down:Connect(function()
+                ToggleEnabled = not ToggleEnabled
+                updateToggleState(ToggleEnabled)
                 pcall(Callback,ToggleEnabled)
             end)
+            
+            local ToggleFunction = {}
+            function ToggleFunction:SetState(state)
+                if ToggleEnabled ~= state then
+                    updateToggleState(state)
+                    pcall(Callback, state)
+                end
+            end
+            function ToggleFunction:GetState()
+                return ToggleEnabled
+            end
+            
+            return ToggleFunction
         end
 
         function Elements:Slider(Name,Min,Max,Callback)
