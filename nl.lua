@@ -198,6 +198,8 @@ local WalkSpeedConnection = nil
 local AimTargetActive = false
 local AimTargetConnection = nil
 local AimTargetTarget = nil
+local AimTargetAngle = 0 -- Store angle outside function
+local AimTargetBodyPosition = nil -- Для стабильной орбиты (сервер не затирает позицию)
 
 -- FIXED HITBOX SYSTEM
 local HitboxConnection = nil
@@ -259,16 +261,70 @@ local teleportConnection = AutoReinject()
 local MainTab = Window:Tab("Main",false)
 MainTab:Label("Character Modifications")
 
--- FIXED HITBOX FUNCTION
-local function updateHitboxes()
-    -- Clean up old hitbox parts
-    for _, part in pairs(hitboxParts) do
-        if part and part.Parent then
-            part:Destroy()
+-- OPTIMIZED HITBOX SYSTEM
+local hitboxPartsByPlayer = {} -- Store parts per player for easier cleanup
+
+local function createHitboxParts(player, rootPart)
+    if hitboxPartsByPlayer[player] then
+        -- Clean up existing parts
+        for _, part in pairs(hitboxPartsByPlayer[player]) do
+            if part and part.Parent then
+                part:Destroy()
+            end
         end
     end
-    hitboxParts = {}
+    hitboxPartsByPlayer[player] = {}
     
+    -- Reduced grid size for better performance (2x2x2 instead of 3x3x3 = 8 parts instead of 27)
+    local subHitboxSize = hitboxSize * 0.6
+    local gridSize = 2
+    local spacing = hitboxSize * 0.8
+    
+    for x = -0.5, 0.5, 1 do
+        for y = -0.5, 0.5, 1 do
+            for z = -0.5, 0.5, 1 do
+                local subPart = Instance.new("Part")
+                subPart.Name = "InvisibleHitbox_" .. player.Name
+                subPart.Size = Vector3.new(subHitboxSize, subHitboxSize, subHitboxSize)
+                subPart.Transparency = 1
+                subPart.CanCollide = false
+                subPart.Anchored = true
+                subPart.CollisionGroup = "PlayerHitbox"
+                subPart.Parent = player.Character
+                
+                local offset = Vector3.new(x * spacing, y * spacing, z * spacing)
+                subPart.CFrame = rootPart.CFrame * CFrame.new(offset)
+                
+                table.insert(hitboxPartsByPlayer[player], subPart)
+            end
+        end
+    end
+end
+
+local function updateHitboxPositions()
+    -- Only update positions, don't recreate parts
+    for player, parts in pairs(hitboxPartsByPlayer) do
+        if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local rootPart = player.Character:FindFirstChild("HumanoidRootPart")
+            local spacing = hitboxSize * 0.8
+            local partIndex = 1
+            
+            for x = -0.5, 0.5, 1 do
+                for y = -0.5, 0.5, 1 do
+                    for z = -0.5, 0.5, 1 do
+                        if parts[partIndex] and parts[partIndex].Parent then
+                            local offset = Vector3.new(x * spacing, y * spacing, z * spacing)
+                            parts[partIndex].CFrame = rootPart.CFrame * CFrame.new(offset)
+                        end
+                        partIndex = partIndex + 1
+                    end
+                end
+            end
+        end
+    end
+end
+
+local function updateHitboxes()
     for _, player in pairs(Players:GetPlayers()) do
         if player ~= Player then
             local character = player.Character
@@ -280,30 +336,20 @@ local function updateHitboxes()
                     rootPart.Size = hitboxEnabled and Vector3.new(hitboxSize, hitboxSize, hitboxSize) or originalHitboxSize
                     rootPart.CollisionGroup = hitboxEnabled and "PlayerHitbox" or "Default"
                     
-                    -- Create invisible smaller hitboxes inside for damage from inside
+                    -- Create hitbox parts only if enabled and not already created
                     if hitboxEnabled then
-                        local subHitboxSize = hitboxSize * 0.7 -- 70% of main hitbox
-                        local gridSize = 3 -- 3x3x3 grid
-                        local spacing = hitboxSize / gridSize
-                        
-                        for x = -1, 1 do
-                            for y = -1, 1 do
-                                for z = -1, 1 do
-                                    local subPart = Instance.new("Part")
-                                    subPart.Name = "InvisibleHitbox_" .. player.Name
-                                    subPart.Size = Vector3.new(subHitboxSize, subHitboxSize, subHitboxSize)
-                                    subPart.Transparency = 1
-                                    subPart.CanCollide = false
-                                    subPart.Anchored = true
-                                    subPart.CollisionGroup = "PlayerHitbox"
-                                    subPart.Parent = character
-                                    
-                                    local offset = Vector3.new(x * spacing, y * spacing, z * spacing)
-                                    subPart.CFrame = rootPart.CFrame * CFrame.new(offset)
-                                    
-                                    table.insert(hitboxParts, subPart)
+                        if not hitboxPartsByPlayer[player] or #hitboxPartsByPlayer[player] == 0 then
+                            createHitboxParts(player, rootPart)
+                        end
+                    else
+                        -- Clean up parts when disabled
+                        if hitboxPartsByPlayer[player] then
+                            for _, part in pairs(hitboxPartsByPlayer[player]) do
+                                if part and part.Parent then
+                                    part:Destroy()
                                 end
                             end
+                            hitboxPartsByPlayer[player] = nil
                         end
                     end
                 end)
@@ -315,13 +361,28 @@ local function updateHitboxes()
     end
 end
 
+-- Троттлинг хитбоксов: обновлять позиции раз в 0.1 сек вместо каждого кадра (сильно меньше грузит FPS)
+local HITBOX_UPDATE_INTERVAL = 0.1
+local lastHitboxUpdate = 0
+
 local HitboxToggle = MainTab:Toggle("Hitbox",function(state)
     hitboxEnabled = state
     settings.hitboxEnabled = state
     -- SaveSettings() will be called automatically by metatable
     if state then
         if HitboxConnection then HitboxConnection:Disconnect() end
-        HitboxConnection = RunService.Stepped:Connect(updateHitboxes)
+        -- Initial setup
+        updateHitboxes()
+        lastHitboxUpdate = tick()
+        -- Обновляем позиции реже (раз в HITBOX_UPDATE_INTERVAL сек), не каждый кадр
+        HitboxConnection = RunService.Heartbeat:Connect(function()
+            if not hitboxEnabled then return end
+            local now = tick()
+            if now - lastHitboxUpdate >= HITBOX_UPDATE_INTERVAL then
+                lastHitboxUpdate = now
+                updateHitboxPositions()
+            end
+        end)
         Notification.new("success", "Hitbox", "Hitbox включен", true, 3)
     else
         if HitboxConnection then
@@ -337,6 +398,14 @@ MainTab:Slider("Hitbox Size",1,50,function(value)
     hitboxSize = value
     settings.hitboxSize = value
     -- metatable saves
+    -- Recreate parts with new size
+    if hitboxEnabled then
+        for player, parts in pairs(hitboxPartsByPlayer) do
+            if player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                createHitboxParts(player, player.Character:FindFirstChild("HumanoidRootPart"))
+            end
+        end
+    end
     updateHitboxes()
 end)
 
@@ -456,19 +525,34 @@ function StartAimTarget()
         return
     end
     
-    -- Teleport to target first
+    -- Reset angle when starting
+    AimTargetAngle = 0
+    
     local myhrp = Player.Character:FindFirstChild("HumanoidRootPart")
     local thrp = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
-    if myhrp and thrp then
-        myhrp.CFrame = thrp.CFrame + Vector3.new(0, 3, 0)
-    end
+    if not myhrp or not thrp then return end
     
-    local angle = 0
+    -- Используем BodyPosition чтобы орбита не сбрасывалась сервером/физикой
+    if AimTargetBodyPosition then AimTargetBodyPosition:Destroy() end
+    AimTargetBodyPosition = Instance.new("BodyPosition")
+    AimTargetBodyPosition.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    AimTargetBodyPosition.P = 20000
+    AimTargetBodyPosition.D = 500
+    AimTargetBodyPosition.Parent = myhrp
+    
     local radius = 5
     local height = 3
+    local rotationSpeed = 0.12
+    
+    -- Первая телепортация к цели
+    myhrp.CFrame = thrp.CFrame + Vector3.new(0, height, 0)
     
     AimTargetConnection = RunService.Heartbeat:Connect(function()
         if not AimTargetActive or not Player.Character or not Player.Character:FindFirstChild("HumanoidRootPart") then
+            StopAimTarget()
+            return
+        end
+        if not AimTargetBodyPosition or not AimTargetBodyPosition.Parent then
             StopAimTarget()
             return
         end
@@ -488,20 +572,20 @@ function StartAimTarget()
             return
         end
         
-        local myhrp = Player.Character:FindFirstChild("HumanoidRootPart")
-        local thrp = target.Character:FindFirstChild("HumanoidRootPart")
+        local root = Player.Character:FindFirstChild("HumanoidRootPart")
+        local trp = target.Character:FindFirstChild("HumanoidRootPart")
+        if not root or not trp then return end
         
-        if myhrp and thrp then
-            angle = angle + 0.1 -- Rotation speed
-            
-            local x = math.cos(angle) * radius
-            local z = math.sin(angle) * radius
-            
-            local targetPos = thrp.Position
-            local orbitPos = targetPos + Vector3.new(x, height, z)
-            
-            myhrp.CFrame = CFrame.lookAt(orbitPos, targetPos)
-        end
+        -- Кружение: приращиваем угол и считаем позицию орбиты
+        AimTargetAngle = AimTargetAngle + rotationSpeed
+        local x = math.cos(AimTargetAngle) * radius
+        local z = math.sin(AimTargetAngle) * radius
+        local targetPos = trp.Position
+        local orbitPos = targetPos + Vector3.new(x, height, z)
+        
+        AimTargetBodyPosition.Position = orbitPos
+        -- Поворачиваем персонажа лицом к цели
+        root.CFrame = CFrame.lookAt(root.Position, targetPos)
     end)
 end
 
@@ -510,6 +594,10 @@ function StopAimTarget()
     if AimTargetConnection then
         AimTargetConnection:Disconnect()
         AimTargetConnection = nil
+    end
+    if AimTargetBodyPosition then
+        AimTargetBodyPosition:Destroy()
+        AimTargetBodyPosition = nil
     end
 end
 
@@ -1870,6 +1958,10 @@ local function UnloadScript()
         AimTargetConnection:Disconnect()
         AimTargetConnection = nil
     end
+    if AimTargetBodyPosition then
+        AimTargetBodyPosition:Destroy()
+        AimTargetBodyPosition = nil
+    end
     
     -- Stop Fling
     StopFling()
@@ -1940,29 +2032,10 @@ local function UnloadScript()
     end
 end
 
--- Modify library to call UnloadScript on close
-spawn(function()
-    task.wait(0.5) -- Wait for UI to be created
-    pcall(function()
-        -- Find the ScreenGui created by the library
-        for _, gui in pairs(game.CoreGui:GetChildren()) do
-            if gui:IsA("ScreenGui") and gui:FindFirstChild("Main") then
-                local main = gui:FindFirstChild("Main")
-                if main and main:FindFirstChild("CloseButton") then
-                    local closeBtn = main:FindFirstChild("CloseButton")
-                    -- Disconnect existing connections
-                    for _, conn in pairs(closeBtn.MouseButton1Click:GetConnections()) do
-                        conn:Disconnect()
-                    end
-                    closeBtn.MouseButton1Click:Connect(function()
-                        UnloadScript()
-                    end)
-                    break
-                end
-            end
-        end
-    end)
-end)
+-- Кнопка закрыть вызывает анхук через callback в библиотеке
+if Library and Library._onCloseCallback == nil then
+    Library._onCloseCallback = UnloadScript
+end
 
 -- Cleanup on script termination
 game:GetService("UserInputService").WindowFocused:Connect(function()
