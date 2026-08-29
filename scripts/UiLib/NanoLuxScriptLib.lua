@@ -1046,7 +1046,8 @@ function Elements:Colorpicker(Name, DefaultColor, Callback)
             local Name = Name or "Colorpicker"
             local Callback = Callback or function() end
             local CurrentColor = DefaultColor or Color3.fromRGB(255, 255, 255)
-            local H, S, V = Color3.toHSV(CurrentColor)
+local H, S, V = Color3.toHSV(CurrentColor)
+            local hue, sat, val = H, S, V
             local ColorPickerOpen = false
 
             local UserInputService = game:GetService("UserInputService")
@@ -1114,7 +1115,7 @@ function Elements:Colorpicker(Name, DefaultColor, Callback)
                 }):Play()
             end)
 
-            -- ===== Окно пикера =====
+            -- ===== Окно пикера (без тени) =====
             local ColorPickerWindow = Instance.new("Frame")
             local ColorPickerWindowCorner = Instance.new("UICorner")
             local ColorPickerWindowHeader = Instance.new("Frame")
@@ -1123,32 +1124,20 @@ function Elements:Colorpicker(Name, DefaultColor, Callback)
             local ColorPickerWindowStroke = Instance.new("UIStroke")
             local HexLabel = Instance.new("TextLabel")
 
-            local ColorCanvas = Instance.new("Frame")
-            local ColorCanvasCorner = Instance.new("UICorner")
-            local SatOverlay = Instance.new("Frame")
-            local ValOverlay = Instance.new("Frame")
-            local SatOverlayGradient = Instance.new("UIGradient")
-            local ValOverlayGradient = Instance.new("UIGradient")
-            local ColorCursor = Instance.new("Frame")
-            local ColorCursorCorner = Instance.new("UICorner")
-            local CanvasCapture = Instance.new("TextButton")
-
-            local HueSlider = Instance.new("Frame")
-            local HueSliderCorner = Instance.new("UICorner")
-            local HueGradient = Instance.new("UIGradient")
-            local HueCursor = Instance.new("Frame")
-            local HueCursorCorner = Instance.new("UICorner")
-            local HueCapture = Instance.new("TextButton")
-
-            local CurrentColorDisplay = Instance.new("Frame")
-            local CurrentColorDisplayCorner = Instance.new("UICorner")
+            local Palette = Instance.new("ImageLabel")
+            local PaletteIndicator = Instance.new("Frame")
+            local PaletteIndicatorCorner = Instance.new("UICorner")
+            local SaturationBar = Instance.new("ImageLabel")
+            local SaturationIndicator = Instance.new("Frame")
+            local FinalColor = Instance.new("Frame")
+            local FinalColorCorner = Instance.new("UICorner")
             local ConfirmButton = Instance.new("TextButton")
             local ConfirmButtonCorner = Instance.new("UICorner")
 
             ColorPickerWindow.Name = tostring(Name) .. "_ColorPickerWindow"
             ColorPickerWindow.Parent = ScreenGui
             ColorPickerWindow.AnchorPoint = Vector2.new(0.5, 0.5)
-ColorPickerWindow.Position = UDim2.fromScale(0.5, 0.5)
+            ColorPickerWindow.Position = UDim2.fromScale(0.5, 0.5)
             ColorPickerWindow.BackgroundColor3 = Color3.fromRGB(45, 44, 64)
             ColorPickerWindow.Size = UDim2.new(0, 320, 0, 285)
             ColorPickerWindow.Visible = false
@@ -1215,117 +1204,66 @@ ColorPickerWindow.Position = UDim2.fromScale(0.5, 0.5)
             end
             dragWindow()
 
-HexLabel.Parent = ColorPickerWindow
+            -- Палитра: X = оттенок, Y = насыщенность
+            Palette.Parent = ColorPickerWindow
+            Palette.BackgroundTransparency = 1
+            Palette.Position = UDim2.new(0.04, 0, 0.2, 0)
+            Palette.Size = UDim2.new(0, 185, 0, 185)
+            Palette.Image = "rbxassetid://698052001"
+            Palette.ZIndex = 201
+
+            PaletteIndicator.Parent = Palette
+            PaletteIndicator.AnchorPoint = Vector2.new(0.5, 0.5)
+            PaletteIndicator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            PaletteIndicator.BorderSizePixel = 2
+            PaletteIndicator.BorderColor3 = Color3.fromRGB(20, 20, 20)
+            PaletteIndicator.Size = UDim2.new(0, 12, 0, 12)
+            PaletteIndicator.ZIndex = 203
+            PaletteIndicatorCorner.CornerRadius = UDim.new(1, 0)
+            PaletteIndicatorCorner.Parent = PaletteIndicator
+
+            -- Полоса яркости: сверху светлый, снизу чёрный
+            SaturationBar.Parent = ColorPickerWindow
+            SaturationBar.BackgroundTransparency = 1
+            SaturationBar.Position = UDim2.new(0.67, 0, 0.2, 0)
+            SaturationBar.Size = UDim2.new(0, 22, 0, 185)
+            SaturationBar.Image = "rbxassetid://3641079629"
+            SaturationBar.ZIndex = 201
+
+            SaturationIndicator.Parent = SaturationBar
+            SaturationIndicator.AnchorPoint = Vector2.new(0.5, 0.5)
+            SaturationIndicator.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            SaturationIndicator.BorderSizePixel = 2
+            SaturationIndicator.BorderColor3 = Color3.fromRGB(20, 20, 20)
+            SaturationIndicator.Size = UDim2.new(1, 2, 0, 4)
+            SaturationIndicator.ZIndex = 203
+
+            HexLabel.Parent = ColorPickerWindow
             HexLabel.BackgroundTransparency = 1
-            HexLabel.Position = UDim2.new(0.56, 0, 0.06, 0)
-            HexLabel.Size = UDim2.new(0, 96, 0, 18)
+            HexLabel.Position = UDim2.new(0.22, 0, 0.875, 0)
+            HexLabel.Size = UDim2.new(0, 90, 0, 26)
             HexLabel.Font = Enum.Font.Gotham
             HexLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
             HexLabel.TextSize = 14
-            HexLabel.TextXAlignment = Enum.TextXAlignment.Right
+            HexLabel.TextXAlignment = Enum.TextXAlignment.Left
             HexLabel.ZIndex = 202
 
-            ColorCanvas.Parent = ColorPickerWindow
-            ColorCanvas.BackgroundColor3 = Color3.fromHSV(H, 1, 1)
-            ColorCanvas.Position = UDim2.new(0.04, 0, 0.2, 0)
-            ColorCanvas.Size = UDim2.new(0, 185, 0, 185)
-            ColorCanvas.ZIndex = 201
-
-            ColorCanvasCorner.CornerRadius = UDim.new(0, 6)
-            ColorCanvasCorner.Parent = ColorCanvas
-
-            SatOverlay.Parent = ColorCanvas
-            SatOverlay.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            SatOverlay.Size = UDim2.new(1, 0, 1, 0)
-            SatOverlay.ZIndex = 202
-            SatOverlayGradient.Color = ColorSequence.new(Color3.fromRGB(255, 255, 255))
-            SatOverlayGradient.Transparency = NumberSequence.new{
-                NumberSequenceKeypoint.new(0, 1),
-                NumberSequenceKeypoint.new(1, 0)
-            }
-            SatOverlayGradient.Rotation = 0
-            SatOverlayGradient.Parent = SatOverlay
-
-            ValOverlay.Parent = ColorCanvas
-            ValOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-            ValOverlay.Size = UDim2.new(1, 0, 1, 0)
-            ValOverlay.ZIndex = 203
-            ValOverlayGradient.Transparency = NumberSequence.new{
-                NumberSequenceKeypoint.new(0, 1),
-                NumberSequenceKeypoint.new(1, 0)
-            }
-            ValOverlayGradient.Rotation = 90
-            ValOverlayGradient.Parent = ValOverlay
-
-            ColorCursor.Parent = ColorCanvas
-            ColorCursor.AnchorPoint = Vector2.new(0.5, 0.5)
-            ColorCursor.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            ColorCursor.BorderSizePixel = 2
-            ColorCursor.BorderColor3 = Color3.fromRGB(20, 20, 20)
-            ColorCursor.Size = UDim2.new(0, 12, 0, 12)
-            ColorCursor.ZIndex = 205
-            ColorCursorCorner.CornerRadius = UDim.new(1, 0)
-            ColorCursorCorner.Parent = ColorCursor
-
-            -- Прозрачная кнопка поверх канваса перехватывает клики, которые иначе
-            -- съедают оверлеи (SatOverlay/ValOverlay).
-            CanvasCapture.Parent = ColorCanvas
-            CanvasCapture.BackgroundTransparency = 1
-            CanvasCapture.Size = UDim2.new(1, 0, 1, 0)
-            CanvasCapture.ZIndex = 206
-            CanvasCapture.Text = ""
-
-HueSlider.Parent = ColorPickerWindow
-            HueSlider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            HueSlider.Position = UDim2.new(0.715, 0, 0.2, 0)
-            HueSlider.Size = UDim2.new(0, 22, 0, 185)
-            HueSlider.ZIndex = 201
-            HueSliderCorner.CornerRadius = UDim.new(0, 4)
-            HueSliderCorner.Parent = HueSlider
-
-            HueGradient.Color = ColorSequence.new{
-                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 0, 0)),
-                ColorSequenceKeypoint.new(0.17, Color3.fromRGB(255, 255, 0)),
-                ColorSequenceKeypoint.new(0.33, Color3.fromRGB(0, 255, 0)),
-                ColorSequenceKeypoint.new(0.50, Color3.fromRGB(0, 255, 255)),
-                ColorSequenceKeypoint.new(0.67, Color3.fromRGB(0, 0, 255)),
-                ColorSequenceKeypoint.new(0.83, Color3.fromRGB(255, 0, 255)),
-                ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 0, 0))
-            }
-            HueGradient.Rotation = 90
-            HueGradient.Parent = HueSlider
-
-            HueCursor.Parent = HueSlider
-            HueCursor.AnchorPoint = Vector2.new(0.5, 0.5)
-            HueCursor.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            HueCursor.BorderSizePixel = 2
-            HueCursor.BorderColor3 = Color3.fromRGB(20, 20, 20)
-            HueCursor.Size = UDim2.new(1, 2, 0, 4)
-            HueCursor.ZIndex = 204
-            HueCursorCorner.CornerRadius = UDim.new(0, 2)
-            HueCursorCorner.Parent = HueCursor
-
-            HueCapture.Parent = HueSlider
-            HueCapture.BackgroundTransparency = 1
-            HueCapture.Size = UDim2.new(1, 0, 1, 0)
-            HueCapture.ZIndex = 205
-            HueCapture.Text = ""
-
-CurrentColorDisplay.Parent = ColorPickerWindow
-            CurrentColorDisplay.BackgroundColor3 = CurrentColor
-            CurrentColorDisplay.Position = UDim2.new(0.53, 0, 0.87, 0)
-            CurrentColorDisplay.Size = UDim2.new(0, 55, 0, 28)
-            CurrentColorDisplay.ZIndex = 201
-            CurrentColorDisplayCorner.CornerRadius = UDim.new(0, 4)
-            CurrentColorDisplayCorner.Parent = CurrentColorDisplay
+            FinalColor.Parent = ColorPickerWindow
+            FinalColor.BackgroundColor3 = CurrentColor
+            FinalColor.Position = UDim2.new(0.04, 0, 0.875, 0)
+            FinalColor.Size = UDim2.new(0, 42, 0, 26)
+            FinalColor.ZIndex = 201
+            FinalColorCorner.CornerRadius = UDim.new(0, 4)
+            FinalColorCorner.Parent = FinalColor
 
             ConfirmButton.Parent = ColorPickerWindow
             ConfirmButton.BackgroundColor3 = Color3.fromRGB(55, 74, 251)
-            ConfirmButton.Position = UDim2.new(0.79, 0, 0.87, 0)
-            ConfirmButton.Size = UDim2.new(0, 55, 0, 28)
-            ConfirmButton.Text = "Confirm"
+            ConfirmButton.Position = UDim2.new(0.78, 0, 0.875, 0)
+            ConfirmButton.Size = UDim2.new(0, 60, 0, 26)
+            ConfirmButton.Text = "OK"
             ConfirmButton.Font = Enum.Font.Gotham
             ConfirmButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+            ConfirmButton.TextSize = 14
             ConfirmButton.ZIndex = 202
             ConfirmButtonCorner.CornerRadius = UDim.new(0, 4)
             ConfirmButtonCorner.Parent = ConfirmButton
@@ -1338,74 +1276,78 @@ CurrentColorDisplay.Parent = ColorPickerWindow
                 )
             end
 
-            local function updateAll()
-                ColorPreview.BackgroundColor3 = CurrentColor
-                CurrentColorDisplay.BackgroundColor3 = CurrentColor
-                HexLabel.Text = toHex(CurrentColor)
-                pcall(Callback, CurrentColor)
+            local PALETTE_DOT = 12
+            local BAR_LINE = 4
+            local function syncIndicators()
+                PaletteIndicator.Position = UDim2.fromScale(
+                    math.clamp((1 - hue) * (1 - PALETTE_DOT / 185), 0, 1 - PALETTE_DOT / 185),
+                    math.clamp((1 - sat) * (1 - PALETTE_DOT / 185), 0, 1 - PALETTE_DOT / 185)
+                )
+                SaturationIndicator.Position = UDim2.fromScale(
+                    0.5,
+                    math.clamp((1 - val) * (1 - BAR_LINE / 185), 0, 1 - BAR_LINE / 185)
+                )
             end
 
-            local function syncCursorPositions()
-                ColorCanvas.BackgroundColor3 = Color3.fromHSV(H, 1, 1)
-                ColorCursor.Position = UDim2.fromScale(1 - S, 1 - V)
-                HueCursor.Position = UDim2.fromScale(0.5, H)
+            local function update()
+                local color = Color3.fromHSV(hue, sat, val)
+                ColorPreview.BackgroundColor3 = color
+                FinalColor.BackgroundColor3 = color
+                HexLabel.Text = toHex(color)
+                pcall(Callback, color)
             end
 
-            local function canvasInput()
-                local pos = ColorCanvas.AbsolutePosition
-                local size = ColorCanvas.AbsoluteSize
-                if size.X <= 0 or size.Y <= 0 then return end
-                local m = UserInputService:GetMouseLocation()
-                local x = math.clamp((m.X - pos.X) / size.X, 0, 1)
-                local y = math.clamp((m.Y - pos.Y) / size.Y, 0, 1)
-                S = 1 - x
-                V = 1 - y
-                CurrentColor = Color3.fromHSV(H, S, V)
-                syncCursorPositions()
-                updateAll()
-            end
-
-            local function hueInput()
-                local pos = HueSlider.AbsolutePosition
-                local size = HueSlider.AbsoluteSize
-                if size.Y <= 0 then return end
-                local m = UserInputService:GetMouseLocation()
-                local y = math.clamp((m.Y - pos.Y) / size.Y, 0, 1)
-                H = y
-                CurrentColor = Color3.fromHSV(H, S, V)
-                syncCursorPositions()
-                updateAll()
-            end
-
-            local function startDrag(inputFn)
-                inputFn()
-                local connMove, connEnd
-                connMove = UserInputService.InputChanged:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseMovement then
-                        inputFn()
-                    end
-                end)
-                connEnd = UserInputService.InputEnded:Connect(function(endInput)
-                    if endInput.UserInputType == Enum.UserInputType.MouseButton1 then
-                        pcall(function() connMove:Disconnect() end)
-                        pcall(function() connEnd:Disconnect() end)
-                        inputFn()
-                    end
-                end)
-            end
-
-            CanvasCapture.MouseButton1Down:Connect(function()
-                startDrag(canvasInput)
+            -- Механика выбора как в rbimgui-2: зажал мышку на палитре/полосе и водишь
+            local mouseHeld = false
+            UserInputService.InputBegan:Connect(function(i)
+                if i.UserInputType == Enum.UserInputType.MouseButton1 then mouseHeld = true end
+            end)
+            UserInputService.InputEnded:Connect(function(i)
+                if i.UserInputType == Enum.UserInputType.MouseButton1 then mouseHeld = false end
             end)
 
-            HueCapture.MouseButton1Down:Connect(function()
-                startDrag(hueInput)
+            local paletteHover, satHover = false, false
+            Palette.MouseEnter:Connect(function() paletteHover = true end)
+            Palette.MouseLeave:Connect(function() paletteHover = false end)
+            SaturationBar.MouseEnter:Connect(function() satHover = true end)
+            SaturationBar.MouseLeave:Connect(function() satHover = false end)
+
+            UserInputService.InputBegan:Connect(function(input)
+                if input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+                if not ColorPickerWindow.Visible then return end
+                local target
+                if paletteHover then
+                    target = "palette"
+                elseif satHover then
+                    target = "bar"
+                end
+                if not target then return end
+                task.spawn(function()
+                    while mouseHeld and ColorPickerWindow.Visible do
+                        local m = UserInputService:GetMouseLocation()
+                        if target == "palette" then
+                            local pos, size = Palette.AbsolutePosition, Palette.AbsoluteSize
+                            if size.X > 0 and size.Y > 0 then
+                                hue = 1 - math.clamp((m.X - pos.X) / size.X, 0, 1)
+                                sat = 1 - math.clamp((m.Y - pos.Y) / size.Y, 0, 1)
+                            end
+                        else
+                            local pos, size = SaturationBar.AbsolutePosition, SaturationBar.AbsoluteSize
+                            if size.Y > 0 then
+                                val = 1 - math.clamp((m.Y - pos.Y) / size.Y, 0, 1)
+                            end
+                        end
+                        syncIndicators()
+                        update()
+                        RunService.Heartbeat:Wait()
+                    end
+                end)
             end)
 
             ColorPickerButton.MouseButton1Click:Connect(function()
                 ColorPickerOpen = not ColorPickerOpen
                 if ColorPickerOpen then
-                    syncCursorPositions()
+                    syncIndicators()
                     ColorPickerWindow.Visible = true
                     ColorPickerWindow.ZIndex = 200
                 else
@@ -1421,23 +1363,22 @@ CurrentColorDisplay.Parent = ColorPickerWindow
             ConfirmButton.MouseButton1Click:Connect(function()
                 ColorPickerOpen = false
                 ColorPickerWindow.Visible = false
-                updateAll()
+                syncIndicators()
             end)
 
-            syncCursorPositions()
+            syncIndicators()
 
             return {
                 UpdateColor = function(newColor)
                     if typeof(newColor) == "Color3" then
                         CurrentColor = newColor
-                        H, S, V = Color3.toHSV(newColor)
-                        syncCursorPositions()
-                        updateAll()
+                        hue, sat, val = Color3.toHSV(newColor)
+                        syncIndicators()
+                        update()
                     end
                 end
             }
         end
-        return Elements
     end
     return xTabs
 end
