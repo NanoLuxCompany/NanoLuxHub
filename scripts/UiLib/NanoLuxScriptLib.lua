@@ -1052,7 +1052,7 @@ function Elements:Colorpicker(Name, DefaultColor, Callback)
             local UserInputService = game:GetService("UserInputService")
             local TweenService = game:GetService("TweenService")
 
-            -- ===== РЎС‚СЂРѕРєР° СЃ РєРЅРѕРїРєРѕР№ Рё РїСЂРµРІСЊСЋ =====
+            -- ===== Строка с кнопкой и превью =====
             local ColorPickerFrame = Instance.new("Frame")
             local ColorPickerFrameCorner = Instance.new("UICorner")
             local ColorPickerName = Instance.new("TextLabel")
@@ -1114,7 +1114,7 @@ function Elements:Colorpicker(Name, DefaultColor, Callback)
                 }):Play()
             end)
 
-            -- ===== РћРєРЅРѕ РїРёРєРµСЂР° =====
+            -- ===== Окно пикера =====
             local ColorPickerWindow = Instance.new("Frame")
             local ColorPickerWindowCorner = Instance.new("UICorner")
             local ColorPickerWindowHeader = Instance.new("Frame")
@@ -1148,9 +1148,9 @@ function Elements:Colorpicker(Name, DefaultColor, Callback)
             ColorPickerWindow.Name = tostring(Name) .. "_ColorPickerWindow"
             ColorPickerWindow.Parent = ScreenGui
             ColorPickerWindow.AnchorPoint = Vector2.new(0.5, 0.5)
-            ColorPickerWindow.Position = UDim2.fromScale(0.5, 0.5)
+ColorPickerWindow.Position = UDim2.fromScale(0.5, 0.5)
             ColorPickerWindow.BackgroundColor3 = Color3.fromRGB(45, 44, 64)
-            ColorPickerWindow.Size = UDim2.new(0, 310, 0, 270)
+            ColorPickerWindow.Size = UDim2.new(0, 320, 0, 285)
             ColorPickerWindow.Visible = false
             ColorPickerWindow.ZIndex = 200
 
@@ -1215,10 +1215,10 @@ function Elements:Colorpicker(Name, DefaultColor, Callback)
             end
             dragWindow()
 
-            HexLabel.Parent = ColorPickerWindow
+HexLabel.Parent = ColorPickerWindow
             HexLabel.BackgroundTransparency = 1
-            HexLabel.Position = UDim2.new(0.55, 0, 0.13, 0)
-            HexLabel.Size = UDim2.new(0, 115, 0, 20)
+            HexLabel.Position = UDim2.new(0.56, 0, 0.06, 0)
+            HexLabel.Size = UDim2.new(0, 96, 0, 18)
             HexLabel.Font = Enum.Font.Gotham
             HexLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
             HexLabel.TextSize = 14
@@ -1227,7 +1227,7 @@ function Elements:Colorpicker(Name, DefaultColor, Callback)
 
             ColorCanvas.Parent = ColorPickerWindow
             ColorCanvas.BackgroundColor3 = Color3.fromHSV(H, 1, 1)
-            ColorCanvas.Position = UDim2.new(0.05, 0, 0.16, 0)
+            ColorCanvas.Position = UDim2.new(0.04, 0, 0.2, 0)
             ColorCanvas.Size = UDim2.new(0, 185, 0, 185)
             ColorCanvas.ZIndex = 201
 
@@ -1267,17 +1267,17 @@ function Elements:Colorpicker(Name, DefaultColor, Callback)
             ColorCursorCorner.CornerRadius = UDim.new(1, 0)
             ColorCursorCorner.Parent = ColorCursor
 
-            -- РџСЂРѕР·СЂР°С‡РЅР°СЏ РєРЅРѕРїРєР° РїРѕРІРµСЂС… РєР°РЅРІР°СЃР° РїРµСЂРµС…РІР°С‚С‹РІР°РµС‚ РєР»РёРєРё, РєРѕС‚РѕСЂС‹Рµ РёРЅР°С‡Рµ
-            -- СЃСЉРµРґР°СЋС‚ РѕРІРµСЂР»РµРё (SatOverlay/ValOverlay).
+            -- Прозрачная кнопка поверх канваса перехватывает клики, которые иначе
+            -- съедают оверлеи (SatOverlay/ValOverlay).
             CanvasCapture.Parent = ColorCanvas
             CanvasCapture.BackgroundTransparency = 1
             CanvasCapture.Size = UDim2.new(1, 0, 1, 0)
             CanvasCapture.ZIndex = 206
             CanvasCapture.Text = ""
 
-            HueSlider.Parent = ColorPickerWindow
+HueSlider.Parent = ColorPickerWindow
             HueSlider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            HueSlider.Position = UDim2.new(0.71, 0, 0.16, 0)
+            HueSlider.Position = UDim2.new(0.715, 0, 0.2, 0)
             HueSlider.Size = UDim2.new(0, 22, 0, 185)
             HueSlider.ZIndex = 201
             HueSliderCorner.CornerRadius = UDim.new(0, 4)
@@ -1311,18 +1311,18 @@ function Elements:Colorpicker(Name, DefaultColor, Callback)
             HueCapture.ZIndex = 205
             HueCapture.Text = ""
 
-            CurrentColorDisplay.Parent = ColorPickerWindow
+CurrentColorDisplay.Parent = ColorPickerWindow
             CurrentColorDisplay.BackgroundColor3 = CurrentColor
-            CurrentColorDisplay.Position = UDim2.new(0.55, 0, 0.74, 0)
-            CurrentColorDisplay.Size = UDim2.new(0, 55, 0, 30)
+            CurrentColorDisplay.Position = UDim2.new(0.53, 0, 0.87, 0)
+            CurrentColorDisplay.Size = UDim2.new(0, 55, 0, 28)
             CurrentColorDisplay.ZIndex = 201
             CurrentColorDisplayCorner.CornerRadius = UDim.new(0, 4)
             CurrentColorDisplayCorner.Parent = CurrentColorDisplay
 
             ConfirmButton.Parent = ColorPickerWindow
             ConfirmButton.BackgroundColor3 = Color3.fromRGB(55, 74, 251)
-            ConfirmButton.Position = UDim2.new(0.78, 0, 0.74, 0)
-            ConfirmButton.Size = UDim2.new(0, 55, 0, 30)
+            ConfirmButton.Position = UDim2.new(0.79, 0, 0.87, 0)
+            ConfirmButton.Size = UDim2.new(0, 55, 0, 28)
             ConfirmButton.Text = "Confirm"
             ConfirmButton.Font = Enum.Font.Gotham
             ConfirmButton.TextColor3 = Color3.fromRGB(255, 255, 255)
