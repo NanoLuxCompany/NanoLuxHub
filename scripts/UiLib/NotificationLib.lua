@@ -77,7 +77,7 @@ local function createNotificationTemplate(name, bgColor, severityColor, icon, de
     hideSeverityCornerFrame.Position = UDim2.new(0.5, 0, 0, 0)
     hideSeverityCornerFrame.Size = UDim2.new(0.5, 0, 1, 0)
     
-    -- Иконка (если есть); обводку не добавляем — можно заменить на свои ассеты
+    -- Иконка (если есть)
     if icon then
         local image = Instance.new("ImageLabel")
         image.Name = "image"
@@ -105,7 +105,7 @@ local function createNotificationTemplate(name, bgColor, severityColor, icon, de
     headingText.Size = UDim2.new(1, 0, 0, 25)
     headingText.Font = Enum.Font.GothamBold
     headingText.Text = defaultHeading
-    headingText.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text for dark background
+    headingText.TextColor3 = Color3.fromRGB(30, 30, 30)
     headingText.TextSize = 14
     headingText.TextXAlignment = Enum.TextXAlignment.Left
     headingText.TextYAlignment = Enum.TextYAlignment.Bottom
@@ -119,7 +119,7 @@ local function createNotificationTemplate(name, bgColor, severityColor, icon, de
     bodyText.Size = UDim2.new(1, 0, 1, -25)
     bodyText.Font = Enum.Font.GothamSemibold
     bodyText.Text = "Текст уведомления"
-    bodyText.TextColor3 = Color3.fromRGB(190, 190, 190) -- Light gray text for dark background
+    bodyText.TextColor3 = Color3.fromRGB(60, 60, 60)
     bodyText.TextSize = 12
     bodyText.TextWrapped = true
     bodyText.TextXAlignment = Enum.TextXAlignment.Left
@@ -151,44 +151,43 @@ local function createNotificationTemplate(name, bgColor, severityColor, icon, de
     return template
 end
 
--- Создаем шаблоны для разных типов уведомлений (адаптированные под базовое окно)
--- Базовые цвета окна: Main = Color3.fromRGB(31, 30, 46), Sidebar = Color3.fromRGB(40, 42, 60)
+-- Создаем шаблоны для разных типов уведомлений
 local errorTemplate = createNotificationTemplate(
     "error", 
-    Color3.fromRGB(40, 42, 60), -- Sidebar color
-    Color3.fromRGB(235, 77, 75), -- Red accent
+    Color3.fromRGB(255, 235, 235), 
+    Color3.fromRGB(235, 77, 75),
     "rbxassetid://9072920609",
     "Ошибка"
 )
 
 local infoTemplate = createNotificationTemplate(
     "info", 
-    Color3.fromRGB(40, 42, 60), -- Sidebar color
-    Color3.fromRGB(55, 74, 251), -- Blue accent (matching UI)
+    Color3.fromRGB(235, 245, 255), 
+    Color3.fromRGB(47, 128, 237),
     "rbxassetid://9072944922",
     "Информация"
 )
 
 local successTemplate = createNotificationTemplate(
     "success", 
-    Color3.fromRGB(40, 42, 60), -- Sidebar color
-    Color3.fromRGB(39, 174, 96), -- Green accent
+    Color3.fromRGB(235, 255, 245), 
+    Color3.fromRGB(39, 174, 96),
     "rbxassetid://9073052584",
     "Успех"
 )
 
 local warningTemplate = createNotificationTemplate(
     "warning", 
-    Color3.fromRGB(40, 42, 60), -- Sidebar color
-    Color3.fromRGB(241, 196, 15), -- Yellow accent
+    Color3.fromRGB(255, 250, 235), 
+    Color3.fromRGB(241, 196, 15),
     "rbxassetid://9072448788",
     "Предупреждение"
 )
 
 local messageTemplate = createNotificationTemplate(
     "message", 
-    Color3.fromRGB(40, 42, 60), -- Sidebar color
-    Color3.fromRGB(120, 120, 120), -- Gray accent
+    Color3.fromRGB(245, 245, 245), 
+    Color3.fromRGB(120, 120, 120),
     nil,
     "Сообщение"
 )
@@ -258,17 +257,34 @@ function Notification.new(notifType, heading, body, autoRemove, autoRemoveTime, 
     
     -- Функция закрытия уведомления
     local function closeNotif()
-        local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-        local closeTween = ts:Create(notif.templateFrame, tweenInfo, {Position = UDim2.new(1, 0, 0, 0)})
-        
-        closeTween:Play()
-        closeTween.Completed:Wait()
-        
-        if callback and type(callback) == "function" then
-            pcall(callback)
+        if not notif or not notif.Parent or not notif.templateFrame or not notif.templateFrame.Parent then
+            return
         end
-        
-        notif:Destroy()
+        local frame = notif.templateFrame
+        -- Анимация скрытия, но не блокируем поток (горячая защита от зависания,
+        -- если GUI будет уничтожен посреди твина).
+        local finished = false
+        local closeTween = ts:Create(frame, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = UDim2.new(1, 0, 0, 0)})
+        closeTween.Completed:Connect(function()
+            finished = true
+        end)
+        closeTween:Play()
+
+        task.spawn(function()
+            local waited = 0
+            while not finished and waited < 1 do
+                task.wait(0.05)
+                waited = waited + 0.05
+            end
+            if callback and type(callback) == "function" then
+                pcall(callback)
+            end
+            pcall(function()
+                if notif and notif.Parent then
+                    notif:Destroy()
+                end
+            end)
+        end)
     end
     
     -- Обработчик кнопки закрытия
