@@ -1052,6 +1052,7 @@ local H, S, V = Color3.toHSV(CurrentColor)
 
             local UserInputService = game:GetService("UserInputService")
             local TweenService = game:GetService("TweenService")
+            local RunService = game:GetService("RunService")
 
             -- ===== Строка с кнопкой и превью =====
             local ColorPickerFrame = Instance.new("Frame")
