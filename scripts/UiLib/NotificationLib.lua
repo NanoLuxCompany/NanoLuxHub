@@ -1,6 +1,6 @@
 --[[
 	╔══════════════════════════════════════════════════════════════════════╗
-	║                     AURA · NOTIFICATIONS  v2.0                       ║
+	║                     AURA · NOTIFICATIONS  v2.1                       ║
 	║        Полностью переписанная версия JxereasNotifications            ║
 	╠══════════════════════════════════════════════════════════════════════╣
 	║  ✦ Пружинная анимация появления: slide + fade + scale + блик         ║
@@ -10,6 +10,8 @@
 	║  ✦ Мягкие тени, градиенты фона, аккуратная обводка                   ║
 	║  ✦ Тёмная / светлая темы, звуки, лимит одновременных уведомлений     ║
 	║  ✦ 100% обратная совместимость со СТАРЫМ API                         ║
+	║  ✦ v2.1: fade убран с CanvasGroup на поэлементные твины —            ║
+	║    текст больше не "залипает" до конца анимации                      ║
 	╠══════════════════════════════════════════════════════════════════════╣
 	║  СТАРЫЙ ВЫЗОВ (как раньше — ничего менять не нужно):                 ║
 	║    local n = Notify.new("Success", "Готово", "Скрипт загружен.",     ║
@@ -303,22 +305,23 @@ local function createCard(theme, accent, iconId)
 			BackgroundTransparency = 1,
 			Image = "rbxassetid://6014261993",
 			ImageColor3 = Color3.fromRGB(0, 0, 0),
-			ImageTransparency = 0.55,
+			ImageTransparency = 1,
 			ScaleType = Enum.ScaleType.Slice,
 			SliceCenter = Rect.new(49, 49, 450, 450),
 			ZIndex = 1,
 		}, holder)
 	end
 
-	-- сама карточка (CanvasGroup = fade целиком + клип по скруглению)
-	local card = new("CanvasGroup", {
+	-- сама карточка
+	local card = new("Frame", {
 		Name = "card",
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Position = UDim2.new(0.5, 0, 0.5, 0),
 		Size = UDim2.new(1, 0, 1, 0),
 		BackgroundColor3 = theme.Background,
+		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
-		GroupTransparency = 1,
+		ClipsDescendants = true,
 		ZIndex = 2,
 	}, holder)
 	new("UICorner", { CornerRadius = UDim.new(0, 12) }, card)
@@ -328,7 +331,7 @@ local function createCard(theme, accent, iconId)
 	}, card)
 	local stroke = new("UIStroke", {
 		Color = theme.StrokeColor,
-		Transparency = theme.StrokeTransp,
+		Transparency = 1,
 		Thickness = 1,
 		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
 	}, card)
@@ -341,7 +344,7 @@ local function createCard(theme, accent, iconId)
 		Position = UDim2.new(0, 3, 0.5, 0),
 		Size = UDim2.new(0, 11, 0.74, 0),
 		BackgroundColor3 = accent,
-		BackgroundTransparency = 0.85,
+		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 	}, card)
 	new("UICorner", { CornerRadius = UDim.new(1, 0) }, glow)
@@ -353,7 +356,7 @@ local function createCard(theme, accent, iconId)
 		Position = UDim2.new(0, 6, 0.5, 0),
 		Size = UDim2.new(0, 4, 0.62, 0),
 		BackgroundColor3 = accent,
-		BackgroundTransparency = 0,
+		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 	}, card)
 	new("UICorner", { CornerRadius = UDim.new(1, 0) }, accentBar)
@@ -365,12 +368,13 @@ local function createCard(theme, accent, iconId)
 		Position = UDim2.new(0, 22, 0.5, 0),
 		Size = UDim2.new(0, 38, 0, 38),
 		BackgroundColor3 = lerpColor(accent, theme.Background, 0.86),
+		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 	}, card)
 	new("UICorner", { CornerRadius = UDim.new(0, 10) }, chip)
 	new("UIStroke", {
 		Color = accent,
-		Transparency = 0.78,
+		Transparency = 1,
 		Thickness = 1,
 		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
 	}, chip)
@@ -383,6 +387,7 @@ local function createCard(theme, accent, iconId)
 		BackgroundTransparency = 1,
 		Image = iconId or "",
 		ImageColor3 = accent,
+		ImageTransparency = 1,
 	}, chip)
 
 	-- текст
@@ -400,6 +405,7 @@ local function createCard(theme, accent, iconId)
 		Font = Enum.Font.GothamBold,
 		TextSize = 14,
 		TextColor3 = theme.Title,
+		TextTransparency = 1,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextTruncate = Enum.TextTruncate.AtEnd,
 		Text = "",
@@ -412,6 +418,7 @@ local function createCard(theme, accent, iconId)
 		Font = Enum.Font.Gotham,
 		TextSize = 13,
 		TextColor3 = theme.Body,
+		TextTransparency = 1,
 		TextXAlignment = Enum.TextXAlignment.Left,
 		TextYAlignment = Enum.TextYAlignment.Top,
 		TextWrapped = true,
@@ -429,6 +436,7 @@ local function createCard(theme, accent, iconId)
 		BackgroundTransparency = 1,
 		Image = "rbxassetid://9127564477",
 		ImageColor3 = theme.Close,
+		ImageTransparency = 1,
 		AutoButtonColor = false,
 		ZIndex = 3,
 	}, card)
@@ -440,7 +448,7 @@ local function createCard(theme, accent, iconId)
 		Position = UDim2.new(0, 22, 1, -8),
 		Size = UDim2.new(1, -40, 0, 3),
 		BackgroundColor3 = theme.Title,
-		BackgroundTransparency = theme.TrackTransp,
+		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 		Visible = false,
 	}, card)
@@ -449,6 +457,7 @@ local function createCard(theme, accent, iconId)
 		Name = "fill",
 		Size = UDim2.new(1, 0, 1, 0),
 		BackgroundColor3 = accent,
+		BackgroundTransparency = 1,
 		BorderSizePixel = 0,
 	}, track)
 	new("UICorner", { CornerRadius = UDim.new(1, 0) }, fill)
@@ -464,6 +473,7 @@ local function createCard(theme, accent, iconId)
 			BackgroundColor3 = theme.SheenColor,
 			BackgroundTransparency = 0.9,
 			BorderSizePixel = 0,
+			Visible = false,
 			ZIndex = 6,
 		}, card)
 		new("UIGradient", {
@@ -494,6 +504,41 @@ local function createCard(theme, accent, iconId)
 		fill      = fill,
 		sheen     = sheen,
 	}
+end
+
+-- Список всего, что фейдится: { instance, свойство, целевое значение }
+local function collectFades(refs, theme)
+	local list = {
+		{ refs.card,      "BackgroundTransparency", 0 },
+		{ refs.stroke,    "Transparency",           theme.StrokeTransp },
+		{ refs.glow,      "BackgroundTransparency", 0.85 },
+		{ refs.accentBar, "BackgroundTransparency", 0 },
+		{ refs.chip,      "BackgroundTransparency", 0 },
+		{ refs.icon,      "ImageTransparency",      0 },
+		{ refs.title,     "TextTransparency",       0 },
+		{ refs.body,      "TextTransparency",       0 },
+		{ refs.closeBtn,  "ImageTransparency",      0 },
+	}
+	local chipStroke = refs.chip:FindFirstChildOfClass("UIStroke")
+	if chipStroke then
+		table.insert(list, { chipStroke, "Transparency", 0.78 })
+	end
+	if refs.shadow then
+		table.insert(list, { refs.shadow, "ImageTransparency", 0.55 })
+	end
+	if refs.track.Visible then
+		table.insert(list, { refs.track, "BackgroundTransparency", theme.TrackTransp })
+		table.insert(list, { refs.fill, "BackgroundTransparency", 0 })
+	end
+	return list
+end
+
+local function setFades(list, value)
+	for _, f in ipairs(list) do
+		pcall(function()
+			f[1][f[2]] = value
+		end)
+	end
 end
 
 --====================================================================--
@@ -556,10 +601,12 @@ function Notification:_enter()
 			TweenInfo.new(0.55, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
 			{ Position = self._targetPos })
 
-		-- проявление всей карточки
-		tween(refs.card,
-			TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-			{ GroupTransparency = 0 })
+		-- проявление всех элементов карточки
+		for _, f in ipairs(self._fades) do
+			tween(f[1],
+				TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+				{ [f[2]] = f[3] })
+		end
 
 		-- лёгкий "подпрыг" масштаба
 		tween(refs.scale,
@@ -578,7 +625,9 @@ function Notification:_enter()
 		if refs.sheen then
 			local sheen = refs.sheen
 			task.delay(0.15, function()
+				if self._closed then return end
 				if sheen and sheen.Parent then
+					sheen.Visible = true
 					local tw = tween(sheen,
 						TweenInfo.new(0.7, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut),
 						{ Position = UDim2.new(1.5, 0, -0.45, 0) })
@@ -596,7 +645,6 @@ end
 function Notification:_exit(fast, skipLayout)
 	if self._closed then return end
 	self._closed = true
-	local refs = self._refs
 
 	if self._timerThread then
 		pcall(task.cancel, self._timerThread)
@@ -622,17 +670,17 @@ function Notification:_exit(fast, skipLayout)
 		layoutStack()
 	end
 
-	-- анимация ухода вправо + затухание
+	-- анимация ухода вправо + затухание всех элементов
 	local dur = fast and 0.22 or 0.32
 	local yPos = self._holder.Position
 	local outTarget = UDim2.new(1, 130, yPos.Y.Scale, yPos.Y.Offset)
 	tween(self._holder,
 		TweenInfo.new(dur, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
 		{ Position = outTarget })
-	if refs.card and refs.card.Parent then
-		tween(refs.card,
+	for _, f in ipairs(self._fades) do
+		tween(f[1],
 			TweenInfo.new(dur, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
-			{ GroupTransparency = 1 })
+			{ [f[2]] = 1 })
 	end
 
 	-- колбэк и уничтожение — после анимации, как в оригинале
@@ -697,7 +745,7 @@ function Notification.new(a1, a2, a3, a4, a5, a6)
 	self._accent    = accent
 	self._conns     = {}
 	self._callback  = (type(opts.Callback) == "function") and opts.Callback or nil
-	self._Remaining = nil
+	self._remaining = nil
 
 	local refs = createCard(theme, accent, iconId)
 	self._refs   = refs
@@ -706,6 +754,15 @@ function Notification.new(a1, a2, a3, a4, a5, a6)
 
 	refs.title.Text = tostring(opts.Title or opts.Heading or preset.Title)
 	refs.body.Text  = tostring(opts.Text or opts.Body or "")
+
+	-- прогресс-бар нужен только если есть таймер
+	if duration and duration > 0 then
+		refs.track.Visible = true
+	end
+
+	-- собираем список фейда и ставим всё в "невидимо"
+	self._fades = collectFades(refs, theme)
+	setFades(self._fades, 1)
 
 	-- регистрируем в стеке и считаем слот
 	table.insert(Active, self)
@@ -723,7 +780,6 @@ function Notification.new(a1, a2, a3, a4, a5, a6)
 
 	-- таймер авто-закрытия
 	if duration and duration > 0 then
-		refs.track.Visible = true
 		self:_startTimer(duration)
 	end
 
