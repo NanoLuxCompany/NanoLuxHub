@@ -1340,7 +1340,7 @@ local H, S, V = Color3.toHSV(CurrentColor)
                         end
                         syncIndicators()
                         update()
-                        RunService.Heartbeat:Wait()
+                        game:GetService("RunService").Heartbeat:Wait()
                     end
                 end)
             end)
