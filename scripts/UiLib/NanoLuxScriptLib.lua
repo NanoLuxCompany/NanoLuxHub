@@ -1,12 +1,19 @@
 local Library = {}
-Library._keybindConnections = {}
 local LibraryName = tostring(math.random(100000,200000))..tostring(math.random(100000,200000))..tostring(math.random(100000,200000))
 
 
 function Library:Toggle()
     local gui = game.CoreGui:FindFirstChild(LibraryName)
-    if not gui then return end
-    gui.Enabled = not gui.Enabled
+    if gui then
+        gui.Enabled = not gui.Enabled
+    end
+end
+
+function Library:Destroy()
+    local gui = game.CoreGui:FindFirstChild(LibraryName)
+    if gui then
+        gui:Destroy()
+    end
 end
 
 function Library:Drag(obj)
@@ -205,14 +212,12 @@ function Library:Create(xHubName,xGameName)
     MinimizeButtonCorner.Name = "MinimizeButtonCorner"
     MinimizeButtonCorner.Parent = MinimizeButton
 
-    -- Close button: вызываем анхук (если задан), затем уничтожаем GUI
+    -- Close button functionality
     CloseButton.MouseButton1Click:Connect(function()
-        if Library._onCloseCallback and type(Library._onCloseCallback) == "function" then
-            pcall(Library._onCloseCallback)
+        if Library.OnClose then
+            pcall(Library.OnClose)
         end
-        if ScreenGui.Parent then
-            ScreenGui:Destroy()
-        end
+        Library:Destroy()
     end)
 
     CloseButton.MouseEnter:Connect(function()
@@ -436,6 +441,7 @@ function Library:Create(xHubName,xGameName)
             local Name = Name or "Toggle"
             local Callback = Callback or function() end
             local ToggleEnabled = false
+            local ToggleFunction = {}
             local ToggleFrame = Instance.new("Frame")
             local ToggleName = Instance.new("TextLabel")
             local ToggleNamePadding = Instance.new("UIPadding")
@@ -504,34 +510,33 @@ function Library:Create(xHubName,xGameName)
             ToggleCircle.SliceCenter = Rect.new(100, 100, 100, 100)
             ToggleCircle.SliceScale = 0.120
 
-            local function updateToggleState(state)
+            function ToggleFunction:SetState(state, callCallback)
+                state = not not state
+                if ToggleEnabled == state then
+                    if callCallback then pcall(Callback, ToggleEnabled) end
+                    return
+                end
                 ToggleEnabled = state
-                if ToggleEnabled then 
-                    game:GetService("TweenService"):Create(ToggleF, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(55, 74, 251)}):Play() 
-                    game:GetService("TweenService"):Create(ToggleCircle, TweenInfo.new(0.3), {Position = UDim2.new(0.559, 0,0.153, 0)}):Play() 
+                if ToggleEnabled then
+                    game:GetService("TweenService"):Create(ToggleF, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(55, 74, 251)}):Play()
+                    game:GetService("TweenService"):Create(ToggleCircle, TweenInfo.new(0.3), {Position = UDim2.new(0.559, 0, 0.153, 0)}):Play()
                 else
-                    game:GetService("TweenService"):Create(ToggleF, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(55, 55, 75)}):Play() 
-                    game:GetService("TweenService"):Create(ToggleCircle, TweenInfo.new(0.3), {Position = UDim2.new(0.093, 0,0.153, 0)}):Play() 
+                    game:GetService("TweenService"):Create(ToggleF, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(55, 55, 75)}):Play()
+                    game:GetService("TweenService"):Create(ToggleCircle, TweenInfo.new(0.3), {Position = UDim2.new(0.093, 0, 0.153, 0)}):Play()
+                end
+                if callCallback ~= false then
+                    pcall(Callback, ToggleEnabled)
                 end
             end
-            
-            ToggleButton.MouseButton1Down:Connect(function()
-                ToggleEnabled = not ToggleEnabled
-                updateToggleState(ToggleEnabled)
-                pcall(Callback,ToggleEnabled)
-            end)
-            
-            local ToggleFunction = {}
-            function ToggleFunction:SetState(state)
-                if ToggleEnabled ~= state then
-                    updateToggleState(state)
-                    pcall(Callback, state)
-                end
-            end
+
             function ToggleFunction:GetState()
                 return ToggleEnabled
             end
-            
+
+            ToggleButton.MouseButton1Down:Connect(function()
+                ToggleFunction:SetState(not ToggleEnabled)
+            end)
+
             return ToggleFunction
         end
 
@@ -540,6 +545,7 @@ function Library:Create(xHubName,xGameName)
             local Callback = Callback or function() end
             local Max = Max or 500
             local Min = Min or 16
+            local SliderFunction = {}
             local SliderFrame = Instance.new("Frame")
             local SliderFrameCorner = Instance.new("UICorner")
             local SliderButton = Instance.new("TextButton")
@@ -619,34 +625,67 @@ function Library:Create(xHubName,xGameName)
             local ms = game.Players.LocalPlayer:GetMouse()
             local uis = game:GetService("UserInputService")
             local Value = Min
-            local mouse = game:GetService("Players").LocalPlayer:GetMouse();
+            local SliderWidth = 389
+
+            local function ClampValue(v)
+                return math.clamp(math.floor(v + 0.5), Min, Max)
+            end
+
+            local function UpdateSliderWidth(width)
+                SliderTrail.Size = UDim2.new(0, math.clamp(width, 0, SliderWidth), 0, 10)
+            end
+
+            function SliderFunction:SetValue(value, callCallback)
+                local nv = ClampValue(value)
+                if nv == Value then
+                    if callCallback ~= false then pcall(Callback, nv) end
+                    return
+                end
+                Value = nv
+                local ratio = (Value - Min) / (Max - Min)
+                UpdateSliderWidth(ratio * SliderWidth)
+                SliderValue.Text = tostring(Value)
+                if callCallback ~= false then
+                    pcall(Callback, Value)
+                end
+            end
+
+            function SliderFunction:GetValue()
+                return Value
+            end
+
+            local function setFromMouse()
+                local absPos = SliderButton.AbsolutePosition
+                local x = ms.X - absPos.X
+                local ratio = math.clamp(x / SliderWidth, 0, 1)
+                local nv = ClampValue(Min + (Max - Min) * ratio)
+                if nv ~= Value then
+                    Value = nv
+                    SliderValue.Text = tostring(Value)
+                    UpdateSliderWidth(ratio * SliderWidth)
+                    pcall(Callback, Value)
+                end
+            end
 
             SliderButton.MouseButton1Down:Connect(function()
-                Value = math.floor((((tonumber(Max) - tonumber(Min)) / 389) * SliderTrail.AbsoluteSize.X) + tonumber(Min)) or 0
-                pcall(function()
-                    Callback(Value)
+                setFromMouse()
+                local dragging = true
+                local moveConn
+                local releaseConn
+                moveConn = ms.Move:Connect(function()
+                    if dragging then setFromMouse() end
                 end)
-                SliderTrail:TweenSize(UDim2.new(0, math.clamp(mouse.X - SliderTrail.AbsolutePosition.X, 0, 389), 0, 10), "InOut", "Linear", 0.05, true)
-                moveconnection = mouse.Move:Connect(function()
-                    SliderValue.Text = Value
-                    Value = math.floor((((tonumber(Max) - tonumber(Min)) / 389) * SliderTrail.AbsoluteSize.X) + tonumber(Min))
-                    pcall(function()
-                        Callback(Value)
-                    end)
-                    SliderTrail:TweenSize(UDim2.new(0, math.clamp(mouse.X - SliderTrail.AbsolutePosition.X, 0, 389), 0, 10), "InOut", "Linear", 0.05, true)
-                end)
-                releaseconnection = uis.InputEnded:Connect(function(Mouse)
+                releaseConn = uis.InputEnded:Connect(function(Mouse)
                     if Mouse.UserInputType == Enum.UserInputType.MouseButton1 then
-                        Value = math.floor((((tonumber(Max) - tonumber(Min)) / 389) * SliderTrail.AbsoluteSize.X) + tonumber(Min))
-                        pcall(function()
-                            Callback(Value)
-                        end)
-                        SliderValue.Text = Value
-                        moveconnection:Disconnect()
-                        releaseconnection:Disconnect()
+                        dragging = false
+                        moveConn:Disconnect()
+                        releaseConn:Disconnect()
                     end
                 end)
             end)
+
+            SliderFunction:SetValue(Min, false)
+            return SliderFunction
         end
 
         function Elements:Textbox(Name,Default,Callback)
@@ -717,7 +756,8 @@ function Library:Create(xHubName,xGameName)
         function Elements:Keybind(Name,xKey,Callback)
             local Name = Name or "Keybind"
             local Callback = Callback or function() end
-            local Keyx = xKey.Name
+            local KeybindFunction = {}
+            local Keyx = xKey and xKey.Name or "None"
             local KeybindFrame = Instance.new("Frame")
             local KeybindFrameCorner = Instance.new("UICorner")
             local KeybindName = Instance.new("TextLabel")
@@ -764,30 +804,53 @@ function Library:Create(xHubName,xGameName)
             KeybindButtonCorner.Name = "KeybindButtonCorner"
             KeybindButtonCorner.Parent = KeybindButton
 
+            local function setKeyText(name)
+                Keyx = name
+                KeybindButton.Text = name
+            end
+
+            function KeybindFunction:SetKey(keyCode)
+                if typeof(keyCode) == "EnumItem" and keyCode.Name then
+                    setKeyText(keyCode.Name)
+                elseif type(keyCode) == "string" then
+                    setKeyText(keyCode)
+                end
+            end
+
             KeybindButton.MouseButton1Click:connect(function() 
                 game.TweenService:Create(KeybindButton, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
                     BackgroundColor3 = Color3.fromRGB(55, 74, 251)
                 }):Play()
                 KeybindButton.Text = ". . ."
-                local v1, v2 = game:GetService('UserInputService').InputBegan:wait();
-                if v1.KeyCode.Name ~= "Unknown" then
+                local ok, v1 = pcall(function()
+                    return game:GetService('UserInputService').InputBegan:wait()
+                end)
+                if ok and v1 and v1.KeyCode and v1.KeyCode.Name ~= "Unknown" then
                     game.TweenService:Create(KeybindButton, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
                         BackgroundColor3 = Color3.fromRGB(55, 55, 75)
                     }):Play()
                     KeybindButton.Text = v1.KeyCode.Name
-                    Keyx = v1.KeyCode.Name;
+                    Keyx = v1.KeyCode.Name
+                    if KeybindFunction.OnRebind then
+                        KeybindFunction.OnRebind(v1.KeyCode)
+                    end
+                    pcall(Callback, v1.KeyCode)
+                else
+                    game.TweenService:Create(KeybindButton, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
+                        BackgroundColor3 = Color3.fromRGB(55, 55, 75)
+                    }):Play()
+                    KeybindButton.Text = Keyx
                 end
             end)
     
-            local keyConn = game:GetService("UserInputService").InputBegan:Connect(function(a, gp) 
-                if not gp then 
-                    if a.KeyCode.Name == Keyx then 
-                        Callback()
-                    end
+            KeybindFunction.Connection = game:GetService("UserInputService").InputBegan:connect(function(a, gp) 
+                if gp then return end
+                if a.KeyCode.Name == Keyx then 
+                    pcall(Callback)
                 end
             end)
-            if not Library._keybindConnections then Library._keybindConnections = {} end
-            table.insert(Library._keybindConnections, keyConn)
+
+            return KeybindFunction
         end
 
         function Elements:Dropdown(Name,Listx,Callback)
@@ -855,16 +918,15 @@ function Library:Create(xHubName,xGameName)
             DropdownButton.ZIndex = 13
 
             DropList.Name = "DropList"
-            -- Parent to ScreenGui instead of DropdownFrame to allow overflow
-            DropList.Parent = ScreenGui
+            DropList.Parent = DropdownFrame
             DropList.BackgroundColor3 = Color3.fromRGB(40, 42, 60)
             DropList.BorderSizePixel = 0
+            DropList.Position = UDim2.new(0, 0, 1, 0)
             DropList.Size = UDim2.new(0, 408, 0, 0)
             DropList.ScrollBarThickness = 8 -- Increased scrollbar thickness
             DropList.Visible = false
-            DropList.ZIndex = 1000 -- High ZIndex to appear above everything
+            DropList.ZIndex = 100
             DropList.CanvasSize = UDim2.new(0, 0, 0, 0)
-            DropList.ClipsDescendants = true
 
             DropListLayout.Name = "DropListLayout"
             DropListLayout.Parent = DropList
@@ -872,118 +934,84 @@ function Library:Create(xHubName,xGameName)
             DropListLayout.SortOrder = Enum.SortOrder.LayoutOrder
             DropListLayout.Padding = UDim.new(0, 3)
 
+            local optionContainer = Instance.new("Frame")
+            optionContainer.Name = "OptionContainer"
+            optionContainer.Parent = DropdownFrame
+            optionContainer.BackgroundColor3 = Color3.fromRGB(40, 42, 60)
+            optionContainer.BackgroundTransparency = 1
+            optionContainer.BorderSizePixel = 0
+            optionContainer.Position = UDim2.new(0, 0, 1, 3)
+            optionContainer.Size = UDim2.new(0, 408, 0, 0)
+            optionContainer.ZIndex = 100
+            optionContainer.Visible = false
+
+            DropList.Parent = optionContainer
+
+            DropList.Size = UDim2.new(1, 0, 1, 0)
+            DropList.Position = UDim2.new(0, 0, 0, 0)
+            DropList.AutomaticCanvasSize = Enum.AutomaticSize.Y
+            DropList.VerticalScrollBarInset = Enum.ScrollBarInset.None
+            DropList.ScrollBarThickness = 6
+
+            DropListLayout.Padding = UDim.new(0, 3)
+            DropListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+
             local function updateDropListSize()
-                local contentSize = DropListLayout.AbsoluteContentSize
-                DropList.CanvasSize = UDim2.new(0, 0, 0, contentSize.Y)
-                local maxHeight = math.min(contentSize.Y, 200)
-                DropList.Size = UDim2.new(0, 408, 0, maxHeight)
+                local contentHeight = DropListLayout.AbsoluteContentSize.Y
+                local maxHeight = math.min(contentHeight, 200)
+                optionContainer.Size = UDim2.new(0, 408, 0, maxHeight)
+                DropList.CanvasSize = UDim2.new(0, 0, 0, contentHeight)
             end
 
-            DropListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateDropListSize)
-
-            DropdownButton.MouseEnter:Connect(function()
-                game:GetService("TweenService"):Create(DropdownFrame, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
-                    BackgroundColor3 = Color3.fromRGB(48, 51, 70)
+            local function closeDropdown()
+                if not opened then return end
+                opened = false
+                game:GetService("TweenService"):Create(optionContainer, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
+                    Size = UDim2.new(0, 408, 0, 0)
                 }):Play()
-            end)
-            
-            DropdownButton.MouseLeave:Connect(function()
-                game:GetService("TweenService"):Create(DropdownFrame, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
-                    BackgroundColor3 = Color3.fromRGB(40, 42, 60)
+                game:GetService("TweenService"):Create(DropdownIcon, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
+                    ImageColor3 = Color3.fromRGB(255, 255, 255)
                 }):Play()
-            end)
-
-            -- Позиция списка: вниз от кнопки; если не влезает в экран — открываем вверх
-            local function updateDropListPosition()
-                if not DropdownFrame or not DropdownFrame.Parent then return end
-                local framePos = DropdownFrame.AbsolutePosition
-                local frameSize = DropdownFrame.AbsoluteSize
-                local listHeight = math.min(DropListLayout.AbsoluteContentSize.Y, 200)
-                local cam = workspace.CurrentCamera
-                local viewportH = (cam and cam.ViewportSize.Y) or 720
-                -- открывать вверх, если вниз не влезает
-                if framePos.Y + frameSize.Y + listHeight > viewportH - 10 then
-                    DropList.AnchorPoint = Vector2.new(0, 1)
-                    DropList.Position = UDim2.new(0, framePos.X, 0, framePos.Y)
-                else
-                    DropList.AnchorPoint = Vector2.new(0, 0)
-                    DropList.Position = UDim2.new(0, framePos.X, 0, framePos.Y + frameSize.Y)
-                end
+                wait(0.1)
+                optionContainer.Visible = false
             end
-            
-            DropdownButton.MouseButton1Down:Connect(function()
-                if opened then 
-                    opened = false
-                    game:GetService("TweenService"):Create(DropList, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
-                        Size = UDim2.new(0, 408, 0, 0)
-                    }):Play()
-                    game:GetService("TweenService"):Create(DropdownIcon, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
-                        ImageColor3 = Color3.fromRGB(255,255,255)
-                    }):Play()
-                    wait(0.1)
-                    DropList.Visible = false
-                else 
-                    opened = true
-                    updateDropListPosition()
-                    DropList.CanvasPosition = Vector2.new(0, 0)
-                    DropList.Visible = true
-                    updateDropListSize()
-                    game:GetService("TweenService"):Create(DropdownIcon, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
-                        ImageColor3 = Color3.fromRGB(55, 74, 251)
-                    }):Play()
-                end 
-            end)
-            
-            -- Update position when frame moves
-            DropdownFrame:GetPropertyChangedSignal("AbsolutePosition"):Connect(function()
-                if opened then
-                    updateDropListPosition()
-                end
-            end)
 
-            for i,v in pairs(Listx) do 
+            local function openDropdown()
+                if opened then return end
+                opened = true
+                updateDropListSize()
+                optionContainer.Visible = true
+                game:GetService("TweenService"):Create(DropdownIcon, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
+                    ImageColor3 = Color3.fromRGB(55, 74, 251)
+                }):Play()
+            end
+
+            local function makeOption(v)
                 local Option = Instance.new("TextButton")
-                local OptionCorner = Instance.new("UICorner")
-                local OptionPadding = Instance.new("UIPadding")
-                
-                Option.Name = tostring(v).."_Option"
+                Option.Name = tostring(v) .. "_Option"
                 Option.Parent = DropList
                 Option.BackgroundColor3 = Color3.fromRGB(40, 42, 60)
-                Option.Size = UDim2.new(0, 408, 0, 35)
+                Option.Size = UDim2.new(1, -6, 0, 35)
                 Option.Font = Enum.Font.Gotham
-                Option.Text = tostring(v)
+                Option.Text = v
                 Option.TextColor3 = Color3.fromRGB(255, 255, 255)
-                Option.TextSize = 15
-                Option.TextXAlignment = Enum.TextXAlignment.Left
-                Option.TextYAlignment = Enum.TextYAlignment.Center
-                Option.TextTruncate = Enum.TextTruncate.None
-                Option.ClipsDescendants = false
+                Option.TextSize = 16
                 Option.ZIndex = 101
-                OptionPadding.PaddingLeft = UDim.new(0, 10)
-                OptionPadding.Parent = Option
 
-                OptionCorner.Name = "OptionCorner"
+                local OptionCorner = Instance.new("UICorner")
                 OptionCorner.Parent = Option
 
                 Option.MouseButton1Down:Connect(function()
                     Callback(v)
-                    for a,b in pairs(DropList:GetChildren()) do 
-                        if b:IsA("TextButton") then 
-                            b.TextColor3 = Color3.fromRGB(255,255,255)
-                        end 
+                    for _, b in pairs(DropList:GetChildren()) do
+                        if b:IsA("TextButton") then
+                            b.TextColor3 = Color3.fromRGB(255, 255, 255)
+                        end
                     end
                     game:GetService("TweenService"):Create(Option, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
                         TextColor3 = Color3.fromRGB(55, 74, 251)
                     }):Play()
-                    opened = false
-                    game:GetService("TweenService"):Create(DropList, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
-                        Size = UDim2.new(0, 408, 0, 0)
-                    }):Play()
-                    game:GetService("TweenService"):Create(DropdownIcon, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
-                        ImageColor3 = Color3.fromRGB(255,255,255)
-                    }):Play()
-                    wait(0.1)
-                    DropList.Visible = false
+                    closeDropdown()
                 end)
 
                 Option.MouseEnter:Connect(function()
@@ -991,7 +1019,7 @@ function Library:Create(xHubName,xGameName)
                         BackgroundColor3 = Color3.fromRGB(48, 51, 70)
                     }):Play()
                 end)
-                
+
                 Option.MouseLeave:Connect(function()
                     game:GetService("TweenService"):Create(Option, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
                         BackgroundColor3 = Color3.fromRGB(40, 42, 60)
@@ -999,73 +1027,44 @@ function Library:Create(xHubName,xGameName)
                 end)
             end
 
+            DropdownButton.MouseEnter:Connect(function()
+                game:GetService("TweenService"):Create(DropdownFrame, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
+                    BackgroundColor3 = Color3.fromRGB(48, 51, 70)
+                }):Play()
+            end)
+
+            DropdownButton.MouseLeave:Connect(function()
+                game:GetService("TweenService"):Create(DropdownFrame, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
+                    BackgroundColor3 = Color3.fromRGB(40, 42, 60)
+                }):Play()
+            end)
+
+            DropdownButton.MouseButton1Down:Connect(function()
+                if opened then closeDropdown() else openDropdown() end
+            end)
+
+            for _, v in pairs(Listx) do
+                makeOption(v)
+            end
+
+            updateDropListSize()
+
             function DropdownFunction:UpdateDropdown(List)
-                for i,child in pairs(DropList:GetChildren()) do
+                for _, child in pairs(DropList:GetChildren()) do
                     if child:IsA("TextButton") then
                         child:Destroy()
                     end
                 end
-                
-                for i,v in pairs(List) do 
-                    local Option = Instance.new("TextButton")
-                    local OptionCorner = Instance.new("UICorner")
-                    local OptionPadding = Instance.new("UIPadding")
-                    
-                    Option.Name = tostring(v).."_Option"
-                    Option.Parent = DropList
-                    Option.BackgroundColor3 = Color3.fromRGB(40, 42, 60)
-                    Option.Size = UDim2.new(0, 408, 0, 35)
-                    Option.Font = Enum.Font.Gotham
-                    Option.Text = tostring(v)
-                    Option.TextColor3 = Color3.fromRGB(255, 255, 255)
-                    Option.TextSize = 15
-                    Option.TextXAlignment = Enum.TextXAlignment.Left
-                    Option.TextYAlignment = Enum.TextYAlignment.Center
-                    Option.TextTruncate = Enum.TextTruncate.None
-                    Option.ClipsDescendants = false
-                    Option.ZIndex = 101
-                    OptionPadding.PaddingLeft = UDim.new(0, 10)
-                    OptionPadding.Parent = Option
-
-                    OptionCorner.Name = "OptionCorner"
-                    OptionCorner.Parent = Option
-
-                    Option.MouseButton1Down:Connect(function()
-                        Callback(v)
-                        for a,b in pairs(DropList:GetChildren()) do 
-                            if b:IsA("TextButton") then 
-                                b.TextColor3 = Color3.fromRGB(255,255,255)
-                            end 
-                        end
-                        game:GetService("TweenService"):Create(Option, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
-                            TextColor3 = Color3.fromRGB(55, 74, 251)
-                        }):Play()
-                        opened = false
-                        game:GetService("TweenService"):Create(DropList, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
-                            Size = UDim2.new(0, 408, 0, 0)
-                        }):Play()
-                        game:GetService("TweenService"):Create(DropdownIcon, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
-                            ImageColor3 = Color3.fromRGB(255,255,255)
-                        }):Play()
-                        wait(0.1)
-                        DropList.Visible = false
-                    end)
-
-                    Option.MouseEnter:Connect(function()
-                        game:GetService("TweenService"):Create(Option, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
-                            BackgroundColor3 = Color3.fromRGB(48, 51, 70)
-                        }):Play()
-                    end)
-                    
-                    Option.MouseLeave:Connect(function()
-                        game:GetService("TweenService"):Create(Option, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
-                            BackgroundColor3 = Color3.fromRGB(40, 42, 60)
-                        }):Play()
-                    end)
+                for _, v in pairs(List or {}) do
+                    makeOption(v)
                 end
                 updateDropListSize()
             end
-            
+
+            function DropdownFunction:Close()
+                closeDropdown()
+            end
+
             return DropdownFunction
         end
 
@@ -1078,9 +1077,8 @@ function Library:Create(xHubName,xGameName)
             local ColorPickerOpen = false
 
             local UserInputService = game:GetService("UserInputService")
-            local Mouse = game.Players.LocalPlayer:GetMouse()
+            local TweenService = game:GetService("TweenService")
 
-            -- Main Colorpicker row
             local ColorPickerFrame = Instance.new("Frame")
             local ColorPickerFrameCorner = Instance.new("UICorner")
             local ColorPickerName = Instance.new("TextLabel")
@@ -1090,47 +1088,7 @@ function Library:Create(xHubName,xGameName)
             local ColorPreview = Instance.new("Frame")
             local ColorPreviewCorner = Instance.new("UICorner")
 
-            -- Colorpicker Window
-            local ColorPickerWindow = Instance.new("Frame")
-            local ColorPickerWindowCorner = Instance.new("UICorner")
-            local ColorPickerWindowHeader = Instance.new("Frame")
-            local ColorPickerWindowHeaderCorner = Instance.new("UICorner")
-            local ColorPickerWindowTitle = Instance.new("TextLabel")
-            local ColorPickerWindowClose = Instance.new("TextButton")
-            local ColorPickerWindowCloseCorner = Instance.new("UICorner")
-
-            -- HEX label
-            local HexLabel = Instance.new("TextLabel")
-
-            -- Canvas
-            local ColorCanvas = Instance.new("Frame")
-            local ColorCanvasCorner = Instance.new("UICorner")
-            local ColorCanvasGradient = Instance.new("UIGradient")
-            local ColorCanvasOverlay = Instance.new("Frame")
-            local ColorCanvasOverlayCorner = Instance.new("UICorner")
-            local ColorCanvasOverlayGradient = Instance.new("UIGradient")
-            local ColorCursor = Instance.new("Frame")
-            local ColorCursorCorner = Instance.new("UICorner")
-
-            -- Hue slider
-            local HueSlider = Instance.new("Frame")
-            local HueSliderCorner = Instance.new("UICorner")
-            local HueGradient = Instance.new("UIGradient")
-            local HueCursor = Instance.new("Frame")
-            local HueCursorCorner = Instance.new("UICorner")
-
-            -- Current color
-            local CurrentColorDisplay = Instance.new("Frame")
-            local CurrentColorDisplayCorner = Instance.new("UICorner")
-
-            -- Confirm button
-            local ConfirmButton = Instance.new("TextButton")
-            local ConfirmButtonCorner = Instance.new("UICorner")
-
-            -----------------------------------------------------
-            -- Main line
-            -----------------------------------------------------
-            ColorPickerFrame.Name = tostring(Name).."_Colorpicker"
+            ColorPickerFrame.Name = tostring(Name) .. "_Colorpicker"
             ColorPickerFrame.Parent = Tab
             ColorPickerFrame.BackgroundColor3 = Color3.fromRGB(40, 42, 60)
             ColorPickerFrame.Size = UDim2.new(0, 408, 0, 35)
@@ -1156,24 +1114,64 @@ function Library:Create(xHubName,xGameName)
             ColorPickerButton.Size = UDim2.new(0, 150, 0, 23)
             ColorPickerButton.Text = ""
             ColorPickerButton.Font = Enum.Font.Gotham
+            ColorPickerButton.ZIndex = 2
 
             ColorPickerButtonCorner.Parent = ColorPickerButton
 
             ColorPreview.Parent = ColorPickerButton
             ColorPreview.BackgroundColor3 = DefaultColor
-            ColorPreview.Position = UDim2.new(0.8, 0, 0.1, 0)
+            ColorPreview.Position = UDim2.new(0.72, 0, 0.1, 0)
             ColorPreview.Size = UDim2.new(0, 18, 0, 18)
+            ColorPreview.ZIndex = 3
             ColorPreviewCorner.Parent = ColorPreview
 
-            -----------------------------------------------------
-            -- Window
-            -----------------------------------------------------
+            ColorPickerButton.MouseEnter:Connect(function()
+                TweenService:Create(ColorPickerButton, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
+                    BackgroundColor3 = Color3.fromRGB(70, 70, 95)
+                }):Play()
+            end)
+            ColorPickerButton.MouseLeave:Connect(function()
+                TweenService:Create(ColorPickerButton, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
+                    BackgroundColor3 = Color3.fromRGB(55, 55, 75)
+                }):Play()
+            end)
+
+            local ColorPickerWindow = Instance.new("Frame")
+            local ColorPickerWindowCorner = Instance.new("UICorner")
+            local ColorPickerWindowHeader = Instance.new("Frame")
+            local ColorPickerWindowTitle = Instance.new("TextLabel")
+            local ColorPickerWindowClose = Instance.new("TextButton")
+            local HexLabel = Instance.new("TextLabel")
+
+            local ColorCanvas = Instance.new("Frame")
+            local ColorCanvasCorner = Instance.new("UICorner")
+            local SatOverlay = Instance.new("Frame")
+            local SatOverlayCorner = Instance.new("UICorner")
+            local SatOverlayGradient = Instance.new("UIGradient")
+            local ValOverlay = Instance.new("Frame")
+            local ValOverlayCorner = Instance.new("UICorner")
+            local ValOverlayGradient = Instance.new("UIGradient")
+            local ColorCursor = Instance.new("Frame")
+            local ColorCursorCorner = Instance.new("UICorner")
+
+            local HueSlider = Instance.new("Frame")
+            local HueSliderCorner = Instance.new("UICorner")
+            local HueGradient = Instance.new("UIGradient")
+            local HueCursor = Instance.new("Frame")
+            local HueCursorCorner = Instance.new("UICorner")
+
+            local CurrentColorDisplay = Instance.new("Frame")
+            local CurrentColorDisplayCorner = Instance.new("UICorner")
+            local ConfirmButton = Instance.new("TextButton")
+            local ConfirmButtonCorner = Instance.new("UICorner")
+
             ColorPickerWindow.Parent = ScreenGui
+            ColorPickerWindow.Name = tostring(Name) .. "_ColorPickerWindow"
             ColorPickerWindow.BackgroundColor3 = Color3.fromRGB(45, 44, 64)
             ColorPickerWindow.Position = UDim2.new(0.35, 0, 0.3, 0)
-            ColorPickerWindow.Size = UDim2.new(0, 300, 0, 260)
+            ColorPickerWindow.Size = UDim2.new(0, 310, 0, 265)
             ColorPickerWindow.Visible = false
-            ColorPickerWindow.ZIndex = 100
+            ColorPickerWindow.ZIndex = 200
 
             ColorPickerWindowCorner.CornerRadius = UDim.new(0, 12)
             ColorPickerWindowCorner.Parent = ColorPickerWindow
@@ -1181,21 +1179,18 @@ function Library:Create(xHubName,xGameName)
             ColorPickerWindowHeader.Parent = ColorPickerWindow
             ColorPickerWindowHeader.BackgroundColor3 = Color3.fromRGB(55, 54, 74)
             ColorPickerWindowHeader.Size = UDim2.new(1, 0, 0, 30)
-            ColorPickerWindowHeader.ZIndex = 101
-
-            ColorPickerWindowHeaderCorner.CornerRadius = UDim.new(0, 12)
-            ColorPickerWindowHeaderCorner.Parent = ColorPickerWindowHeader
+            ColorPickerWindowHeader.ZIndex = 201
 
             ColorPickerWindowTitle.Parent = ColorPickerWindowHeader
             ColorPickerWindowTitle.BackgroundTransparency = 1
-            ColorPickerWindowTitle.Size = UDim2.new(0.7, 0, 1, 0)
+            ColorPickerWindowTitle.Size = UDim2.new(0.8, 0, 1, 0)
             ColorPickerWindowTitle.Position = UDim2.new(0.05, 0, 0, 0)
             ColorPickerWindowTitle.Font = Enum.Font.Gotham
             ColorPickerWindowTitle.Text = "Color Picker"
             ColorPickerWindowTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
             ColorPickerWindowTitle.TextSize = 14
             ColorPickerWindowTitle.TextXAlignment = Enum.TextXAlignment.Left
-            ColorPickerWindowTitle.ZIndex = 102
+            ColorPickerWindowTitle.ZIndex = 202
 
             ColorPickerWindowClose.Parent = ColorPickerWindowHeader
             ColorPickerWindowClose.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
@@ -1203,126 +1198,100 @@ function Library:Create(xHubName,xGameName)
             ColorPickerWindowClose.Size = UDim2.new(0, 20, 0, 20)
             ColorPickerWindowClose.Text = "X"
             ColorPickerWindowClose.TextColor3 = Color3.fromRGB(255, 255, 255)
-            ColorPickerWindowClose.ZIndex = 102
+            ColorPickerWindowClose.TextSize = 14
+            ColorPickerWindowClose.ZIndex = 202
 
-            ColorPickerWindowCloseCorner.CornerRadius = UDim.new(0, 4)
-            ColorPickerWindowCloseCorner.Parent = ColorPickerWindowClose
+            local function dragWindow()
+                local dragging = false
+                local dragStart, startPos
+                ColorPickerWindowHeader.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        dragging = true
+                        dragStart = input.Position
+                        startPos = ColorPickerWindow.Position
+                    end
+                end)
+                ColorPickerWindowHeader.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        dragging = false
+                    end
+                end)
+                ColorPickerWindowHeader.InputChanged:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
+                        local delta = input.Position - dragStart
+                        ColorPickerWindow.Position = UDim2.new(
+                            startPos.X.Scale,
+                            startPos.X.Offset + delta.X,
+                            startPos.Y.Scale,
+                            startPos.Y.Offset + delta.Y
+                        )
+                    end
+                end)
+            end
+            dragWindow()
 
-            -- Drag system для ColorPicker
-            local ColorPickerDrag = Instance.new("TextButton")
-            ColorPickerDrag.Parent = ColorPickerWindowHeader
-            ColorPickerDrag.BackgroundTransparency = 1
-            ColorPickerDrag.Size = UDim2.new(0.8, 0, 1, 0)
-            ColorPickerDrag.Text = ""
-            ColorPickerDrag.ZIndex = 103
-            
-            local dragging = false
-            local dragStart
-            local startPos
-            
-            ColorPickerDrag.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    dragging = true
-                    dragStart = input.Position
-                    startPos = ColorPickerWindow.Position
-                    
-                    input.Changed:Connect(function()
-                        if input.UserInputState == Enum.UserInputState.End then
-                            dragging = false
-                        end
-                    end)
-                end
-            end)
-            
-            ColorPickerDrag.InputChanged:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseMovement and dragging then
-                    local delta = input.Position - dragStart
-                    ColorPickerWindow.Position = UDim2.new(
-                        startPos.X.Scale, 
-                        startPos.X.Offset + delta.X,
-                        startPos.Y.Scale, 
-                        startPos.Y.Offset + delta.Y
-                    )
-                end
-            end)
-
-            -----------------------------------------------------
-            -- HEX label
-            -----------------------------------------------------
             HexLabel.Parent = ColorPickerWindow
             HexLabel.BackgroundTransparency = 1
-            HexLabel.Position = UDim2.new(0.05, 0, 0.12, 0)
-            HexLabel.Size = UDim2.new(0, 200, 0, 20)
+            HexLabel.Position = UDim2.new(0.06, 0, 0.13, 0)
+            HexLabel.Size = UDim2.new(0, 160, 0, 20)
             HexLabel.Font = Enum.Font.Gotham
             HexLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
             HexLabel.TextSize = 14
             HexLabel.TextXAlignment = Enum.TextXAlignment.Left
+            HexLabel.ZIndex = 202
             HexLabel.Text = "#FFFFFF"
-            HexLabel.ZIndex = 102
 
-            -----------------------------------------------------
-            -- Canvas
-            -----------------------------------------------------
             ColorCanvas.Parent = ColorPickerWindow
-            ColorCanvas.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-            ColorCanvas.Position = UDim2.new(0.05, 0, 0.23, 0)
-            ColorCanvas.Size = UDim2.new(0, 150, 0, 150)
-            ColorCanvas.ZIndex = 101
+            ColorCanvas.BackgroundColor3 = Color3.fromHSV(0, 1, 1)
+            ColorCanvas.Position = UDim2.new(0.06, 0, 0.22, 0)
+            ColorCanvas.Size = UDim2.new(0, 170, 0, 170)
+            ColorCanvas.ZIndex = 201
 
             ColorCanvasCorner.CornerRadius = UDim.new(0, 6)
             ColorCanvasCorner.Parent = ColorCanvas
 
-            -- Main hue gradient
-            ColorCanvasGradient.Color = ColorSequence.new{
-                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 0, 0)),
-                ColorSequenceKeypoint.new(0.17, Color3.fromRGB(255, 255, 0)),
-                ColorSequenceKeypoint.new(0.33, Color3.fromRGB(0, 255, 0)),
-                ColorSequenceKeypoint.new(0.50, Color3.fromRGB(0, 255, 255)),
-                ColorSequenceKeypoint.new(0.67, Color3.fromRGB(0, 0, 255)),
-                ColorSequenceKeypoint.new(0.83, Color3.fromRGB(255, 0, 255)),
-                ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 0, 0))
+            SatOverlay.Parent = ColorCanvas
+            SatOverlay.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+            SatOverlay.Size = UDim2.new(1, 0, 1, 0)
+            SatOverlay.ZIndex = 202
+            SatOverlayCorner.Parent = SatOverlay
+            SatOverlayGradient.Color = ColorSequence.new{
+                ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+                ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255))
             }
-            ColorCanvasGradient.Rotation = 0
-            ColorCanvasGradient.Parent = ColorCanvas
-
-            -- White to black overlay
-            ColorCanvasOverlay.Parent = ColorCanvas
-            ColorCanvasOverlay.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            ColorCanvasOverlay.Size = UDim2.new(1, 0, 1, 0)
-            ColorCanvasOverlay.ZIndex = 102
-
-            ColorCanvasOverlayCorner.CornerRadius = UDim.new(0, 6)
-            ColorCanvasOverlayCorner.Parent = ColorCanvasOverlay
-
-            ColorCanvasOverlayGradient.Color = ColorSequence.new{
-                ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 255, 255)),
-                ColorSequenceKeypoint.new(1.00, Color3.fromRGB(0, 0, 0))
+            SatOverlayGradient.Transparency = NumberSequence.new{
+                NumberSequenceKeypoint.new(0, 1),
+                NumberSequenceKeypoint.new(1, 0)
             }
-            ColorCanvasOverlayGradient.Transparency = NumberSequence.new{
-                NumberSequenceKeypoint.new(0.00, 0),
-                NumberSequenceKeypoint.new(1.00, 1)
+            SatOverlayGradient.Rotation = 0
+            SatOverlayGradient.Parent = SatOverlay
+
+            ValOverlay.Parent = ColorCanvas
+            ValOverlay.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+            ValOverlay.Size = UDim2.new(1, 0, 1, 0)
+            ValOverlay.ZIndex = 203
+            ValOverlayCorner.Parent = ValOverlay
+            ValOverlayGradient.Transparency = NumberSequence.new{
+                NumberSequenceKeypoint.new(0, 1),
+                NumberSequenceKeypoint.new(1, 0)
             }
-            ColorCanvasOverlayGradient.Rotation = 90
-            ColorCanvasOverlayGradient.Parent = ColorCanvasOverlay
+            ValOverlayGradient.Rotation = 90
+            ValOverlayGradient.Parent = ValOverlay
 
             ColorCursor.Parent = ColorCanvas
             ColorCursor.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             ColorCursor.BorderSizePixel = 2
-            ColorCursor.BorderColor3 = Color3.fromRGB(0, 0, 0)
-            ColorCursor.Size = UDim2.new(0, 10, 0, 10)
-            ColorCursor.ZIndex = 103
+            ColorCursor.BorderColor3 = Color3.fromRGB(255, 255, 255)
+            ColorCursor.Size = UDim2.new(0, 12, 0, 12)
+            ColorCursor.ZIndex = 204
             ColorCursorCorner.CornerRadius = UDim.new(1, 0)
             ColorCursorCorner.Parent = ColorCursor
 
-            -----------------------------------------------------
-            -- Hue slider - ВЛЕВО
-            -----------------------------------------------------
             HueSlider.Parent = ColorPickerWindow
             HueSlider.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            HueSlider.Position = UDim2.new(0.6, 0, 0.23, 0) -- Влево
-            HueSlider.Size = UDim2.new(0, 20, 0, 150)
-            HueSlider.ZIndex = 101
-
+            HueSlider.Position = UDim2.new(0.68, 0, 0.22, 0)
+            HueSlider.Size = UDim2.new(0, 20, 0, 170)
+            HueSlider.ZIndex = 201
             HueSliderCorner.CornerRadius = UDim.new(0, 4)
             HueSliderCorner.Parent = HueSlider
 
@@ -1342,47 +1311,35 @@ function Library:Create(xHubName,xGameName)
             HueCursor.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
             HueCursor.BorderSizePixel = 2
             HueCursor.BorderColor3 = Color3.fromRGB(0, 0, 0)
-            HueCursor.Size = UDim2.new(1, 0, 0, 4)
-            HueCursor.ZIndex = 102
-
+            HueCursor.Size = UDim2.new(1, 4, 0, 4)
+            HueCursor.ZIndex = 202
             HueCursorCorner.CornerRadius = UDim.new(0, 2)
             HueCursorCorner.Parent = HueCursor
 
-            -----------------------------------------------------
-            -- Current COLOR - СПРАВА КАК БЫЛО
-            -----------------------------------------------------
             CurrentColorDisplay.Parent = ColorPickerWindow
             CurrentColorDisplay.BackgroundColor3 = DefaultColor
-            CurrentColorDisplay.Position = UDim2.new(0.7, 0, 0.65, 0) -- Справа
-            CurrentColorDisplay.Size = UDim2.new(0, 80, 0, 30)
-            CurrentColorDisplay.ZIndex = 101
-
+            CurrentColorDisplay.Position = UDim2.new(0.78, 0, 0.58, 0)
+            CurrentColorDisplay.Size = UDim2.new(0, 55, 0, 30)
+            CurrentColorDisplay.ZIndex = 201
             CurrentColorDisplayCorner.CornerRadius = UDim.new(0, 4)
             CurrentColorDisplayCorner.Parent = CurrentColorDisplay
 
-            -----------------------------------------------------
-            -- Confirm button - СПРАВА КАК БЫЛО
-            -----------------------------------------------------
             ConfirmButton.Parent = ColorPickerWindow
             ConfirmButton.BackgroundColor3 = Color3.fromRGB(55, 74, 251)
-            ConfirmButton.Position = UDim2.new(0.7, 0, 0.82, 0) -- Справа
-            ConfirmButton.Size = UDim2.new(0, 80, 0, 25)
+            ConfirmButton.Position = UDim2.new(0.78, 0, 0.78, 0)
+            ConfirmButton.Size = UDim2.new(0, 55, 0, 28)
             ConfirmButton.Text = "Confirm"
             ConfirmButton.Font = Enum.Font.Gotham
             ConfirmButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-            ConfirmButton.ZIndex = 102
-
+            ConfirmButton.ZIndex = 202
             ConfirmButtonCorner.CornerRadius = UDim.new(0, 4)
             ConfirmButtonCorner.Parent = ConfirmButton
 
-            -----------------------------------------------------
-            -- Color update utils
-            -----------------------------------------------------
             local function toHex(c)
                 return string.format("#%02X%02X%02X",
-                    math.floor(c.R * 255),
-                    math.floor(c.G * 255),
-                    math.floor(c.B * 255)
+                    math.floor(c.R * 255 + 0.5),
+                    math.floor(c.G * 255 + 0.5),
+                    math.floor(c.B * 255 + 0.5)
                 )
             end
 
@@ -1390,70 +1347,78 @@ function Library:Create(xHubName,xGameName)
                 ColorPreview.BackgroundColor3 = CurrentColor
                 CurrentColorDisplay.BackgroundColor3 = CurrentColor
                 HexLabel.Text = toHex(CurrentColor)
-                Callback(CurrentColor)
+                pcall(Callback, CurrentColor)
+            end
+
+            local function mousePosition()
+                return UserInputService:GetMouseLocation()
             end
 
             local function canvasInput()
                 local pos = ColorCanvas.AbsolutePosition
                 local size = ColorCanvas.AbsoluteSize
-
-                local x = math.clamp((Mouse.X - pos.X) / size.X, 0, 1)
-                local y = math.clamp((Mouse.Y - pos.Y) / size.Y, 0, 1)
-
-                local h, s, v = Color3.toHSV(CurrentColor)
-                CurrentColor = Color3.fromHSV(h, x, 1 - y)
-
-                ColorCursor.Position = UDim2.new(x, -5, y, -5)
+                if size.X <= 0 or size.Y <= 0 then return end
+                local m = mousePosition()
+                local x = math.clamp((m.X - pos.X) / size.X, 0, 1)
+                local y = math.clamp((m.Y - pos.Y) / size.Y, 0, 1)
+                local h, _, _ = Color3.toHSV(CurrentColor)
+                CurrentColor = Color3.fromHSV(h, 1 - x, 1 - y)
+                ColorCursor.Position = UDim2.new(x, -6, y, -6)
                 updateAll()
             end
 
             local function hueInput()
                 local pos = HueSlider.AbsolutePosition
                 local size = HueSlider.AbsoluteSize
-
-                local y = math.clamp((Mouse.Y - pos.Y) / size.Y, 0, 1)
-
-                local h, s, v = Color3.toHSV(CurrentColor)
-                CurrentColor = Color3.fromHSV(1 - y, s, v)
-
+                if size.Y <= 0 then return end
+                local m = mousePosition()
+                local y = math.clamp((m.Y - pos.Y) / size.Y, 0, 1)
+                local h = y
+                local _, s, v = Color3.toHSV(CurrentColor)
+                CurrentColor = Color3.fromHSV(h, s, v)
+                ColorCanvas.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
                 HueCursor.Position = UDim2.new(0, 0, y, -2)
                 updateAll()
             end
 
-            -----------------------------------------------------
-            -- Events
-            -----------------------------------------------------
+            local function startDrag(target, inputFn)
+                inputFn()
+                local dragConn
+                local releaseConn
+                dragConn = UserInputService.InputChanged:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseMovement then
+                        inputFn()
+                    end
+                end)
+                releaseConn = UserInputService.InputEnded:Connect(function(endInput)
+                    if endInput.UserInputType == Enum.UserInputType.MouseButton1 then
+                        dragConn:Disconnect()
+                        releaseConn:Disconnect()
+                        if target == ColorCanvas then canvasInput() else hueInput() end
+                    end
+                end)
+            end
+
             ColorCanvas.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    canvasInput()
-                    local moveConn
-                    moveConn = Mouse.Move:Connect(function() canvasInput() end)
-                    UserInputService.InputEnded:Connect(function(endInput)
-                        if endInput.UserInputType == Enum.UserInputType.MouseButton1 then
-                            moveConn:Disconnect()
-                        end
-                    end)
+                    startDrag(ColorCanvas, canvasInput)
                 end
             end)
 
             HueSlider.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    hueInput()
-                    local moveConn
-                    moveConn = Mouse.Move:Connect(function() hueInput() end)
-                    UserInputService.InputEnded:Connect(function(endInput)
-                        if endInput.UserInputType == Enum.UserInputType.MouseButton1 then
-                            moveConn:Disconnect()
-                        end
-                    end)
+                    startDrag(HueSlider, hueInput)
                 end
             end)
 
-            -----------------------------------------------------
-            -- Open / Close
-            -----------------------------------------------------
             ColorPickerButton.MouseButton1Click:Connect(function()
                 ColorPickerOpen = not ColorPickerOpen
+                if ColorPickerOpen then
+                    local h, s, v = Color3.toHSV(CurrentColor)
+                    ColorCanvas.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
+                    ColorCursor.Position = UDim2.new(1 - s, -6, 1 - v, -6)
+                    HueCursor.Position = UDim2.new(0, 0, h, -2)
+                end
                 ColorPickerWindow.Visible = ColorPickerOpen
             end)
 
@@ -1465,17 +1430,24 @@ function Library:Create(xHubName,xGameName)
             ConfirmButton.MouseButton1Click:Connect(function()
                 ColorPickerOpen = false
                 ColorPickerWindow.Visible = false
+                updateAll()
             end)
 
-            -- Initialize cursor positions
-            ColorCursor.Position = UDim2.new(1, -5, 0, -5) -- Top right (white)
-            HueCursor.Position = UDim2.new(0, 0, 0, -2) -- Top (red)
+            local function syncPositions()
+                local h, s, v = Color3.toHSV(CurrentColor)
+                ColorCursor.Position = UDim2.new(1 - s, -6, 1 - v, -6)
+                HueCursor.Position = UDim2.new(0, 0, h, -2)
+                ColorCanvas.BackgroundColor3 = Color3.fromHSV(h, 1, 1)
+            end
+            syncPositions()
 
-            -----------------------------------------------------
             return {
                 UpdateColor = function(newColor)
-                    CurrentColor = newColor
-                    updateAll()
+                    if typeof(newColor) == "Color3" then
+                        CurrentColor = newColor
+                        syncPositions()
+                        updateAll()
+                    end
                 end
             }
         end
