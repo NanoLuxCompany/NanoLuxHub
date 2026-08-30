@@ -66,7 +66,7 @@ local Config = {
 	Shadows         = true,          -- мягкая тень под карточкой
 	Sheen           = true,          -- блик, пробегающий при появлении
 	HoverPause      = true,          -- пауза таймера при наведении
-	Sounds          = false,         -- звуки (id — в TypePresets.Sound)
+	Sounds          = true,         -- звуки (id — в TypePresets.Sound)
 	SoundVolume     = 0.35,
 	-- true  = красивые альфа-фейды появления/исчезновения
 	-- false = только слайд (100% надёжно в любых средах/экзекьюторах)
@@ -110,31 +110,31 @@ local TypePresets = {
 		Accent = Color3.fromRGB(62, 214, 152),
 		Icon   = "rbxassetid://9073052584",
 		Title  = "Успех",
-		Sound  = nil, -- например "rbxassetid://6026984224"
+		Sound  = "rbxassetid://90420386076500", -- например "rbxassetid://6026984224"
 	},
 	error = {
 		Accent = Color3.fromRGB(248, 106, 106),
 		Icon   = "rbxassetid://9072920609",
 		Title  = "Ошибка",
-		Sound  = nil,
+		Sound  = "rbxassetid://131268007007000",
 	},
 	warning = {
 		Accent = Color3.fromRGB(250, 190, 60),
 		Icon   = "rbxassetid://9072448788",
 		Title  = "Предупреждение",
-		Sound  = nil,
+		Sound  = "rbxassetid://109149869070031",
 	},
 	info = {
 		Accent = Color3.fromRGB(96, 165, 250),
 		Icon   = "rbxassetid://9072944922",
 		Title  = "Информация",
-		Sound  = nil,
+		Sound  = "rbxassetid://98797174600699",
 	},
 	message = {
 		Accent = Color3.fromRGB(170, 145, 250),
 		Icon   = "rbxassetid://9072944922",
 		Title  = "Сообщение",
-		Sound  = nil,
+		Sound  = "rbxassetid://98797174600699",
 	},
 }
 Notification.Types = TypePresets
