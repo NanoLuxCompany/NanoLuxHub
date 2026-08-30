@@ -254,7 +254,7 @@ local errorTemplate = createNotificationTemplate(
     "error",
     CARD_COLOR,
     IOS_RED,
-    "rbxassetid://9072920609",
+    "rbxassetid://125912924580656",
     "Ошибка"
 )
 
@@ -262,7 +262,7 @@ local infoTemplate = createNotificationTemplate(
     "info",
     CARD_COLOR,
     IOS_BLUE,
-    "rbxassetid://9072944922",
+    "rbxassetid://5832745520",
     "Информация"
 )
 
@@ -270,7 +270,7 @@ local successTemplate = createNotificationTemplate(
     "success",
     CARD_COLOR,
     IOS_GREEN,
-    "rbxassetid://9073052584",
+    "rbxassetid://5578470925",
     "Успех"
 )
 
@@ -278,7 +278,7 @@ local warningTemplate = createNotificationTemplate(
     "warning",
     CARD_COLOR,
     IOS_YELLOW,
-    "rbxassetid://9072448788",
+    "rbxassetid://71455947433839",
     "Предупреждение"
 )
 
