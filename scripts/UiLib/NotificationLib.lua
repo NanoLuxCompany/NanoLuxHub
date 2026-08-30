@@ -66,7 +66,7 @@ local Config = {
 	Shadows         = true,          -- мягкая тень под карточкой
 	Sheen           = true,          -- блик, пробегающий при появлении
 	HoverPause      = true,          -- пауза таймера при наведении
-	Sounds          = true,         -- звуки (id — в TypePresets.Sound)
+	Sounds          = true,          -- звуки (id — в TypePresets.Sound)
 	SoundVolume     = 0.35,
 	-- true  = красивые альфа-фейды появления/исчезновения
 	-- false = только слайд (100% надёжно в любых средах/экзекьюторах)
@@ -110,7 +110,7 @@ local TypePresets = {
 		Accent = Color3.fromRGB(62, 214, 152),
 		Icon   = "rbxassetid://9073052584",
 		Title  = "Успех",
-		Sound  = "rbxassetid://90420386076500", -- например "rbxassetid://6026984224"
+		Sound  = "rbxassetid://90420386076500",
 	},
 	error = {
 		Accent = Color3.fromRGB(248, 106, 106),
@@ -397,17 +397,20 @@ local function createCard(theme, accent, iconId)
 		ImageTransparency = 0,
 	}, chip)
 
-	-- текст
+	-- ИСПРАВЛЕННАЯ ЧАСТЬ: текст с правильным позиционированием
 	local content = new("Frame", {
 		Name = "content",
 		AnchorPoint = Vector2.new(0, 0.5),
-		Position = UDim2.new(0, 74, 0.5, -4),
-		Size = UDim2.new(1, -112, 1, -18),
+		Position = UDim2.new(0, 74, 0.5, 0),
+		Size = UDim2.new(1, -110, 1, -16),
 		BackgroundTransparency = 1,
 	}, card)
+
+	-- Заголовок
 	local title = new("TextLabel", {
 		Name = "title",
-		Size = UDim2.new(1, 0, 0, 17),
+		Size = UDim2.new(1, 0, 0, 18),
+		Position = UDim2.new(0, 0, 0, 0),
 		BackgroundTransparency = 1,
 		Font = Enum.Font.GothamBold,
 		TextSize = 14,
@@ -417,10 +420,12 @@ local function createCard(theme, accent, iconId)
 		TextTruncate = Enum.TextTruncate.AtEnd,
 		Text = "",
 	}, content)
+
+	-- Текст сообщения
 	local body = new("TextLabel", {
 		Name = "body",
-		Position = UDim2.new(0, 0, 0, 18),
-		Size = UDim2.new(1, 0, 1, -18),
+		Position = UDim2.new(0, 0, 0, 20),
+		Size = UDim2.new(1, 0, 1, -20),
 		BackgroundTransparency = 1,
 		Font = Enum.Font.Gotham,
 		TextSize = 13,
