@@ -102,6 +102,7 @@ local function createNotificationTemplate(name, bgColor, severityColor, icon, de
     templateFrame.BackgroundTransparency = 0.06 -- лёгкая прозрачность = frosted glass
     templateFrame.BorderSizePixel = 0
     templateFrame.Size = UDim2.new(1, 0, 1, 0)
+    templateFrame.ZIndex = 1 -- ставим поверх тени
 
     local templateCorner = Instance.new("UICorner")
     templateCorner.Name = "templateCorner"
@@ -127,20 +128,24 @@ local function createNotificationTemplate(name, bgColor, severityColor, icon, de
     glassStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     glassStroke.Parent = templateFrame
 
-    -- Мягкая тень под карточкой
-    local shadow = Instance.new("ImageLabel")
+    -- ============================================================
+    -- ИСПРАВЛЕНИЕ 1: Тень теперь Frame с UICorner, а не ImageLabel
+    -- ============================================================
+    local shadow = Instance.new("Frame")
     shadow.Name = "shadow"
-    shadow.Parent = templateFrame
+    shadow.Parent = template -- перенесли наружу, чтобы не обрезалась
     shadow.AnchorPoint = Vector2.new(0.5, 0.5)
-    shadow.BackgroundTransparency = 1
-    shadow.Position = UDim2.new(0.5, 0, 0.5, 1)
-    shadow.Size = UDim2.new(1, 18, 1, 18)
-    shadow.Image = SHADOW_IMAGE
-    shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-    shadow.ImageTransparency = 0.55
-    shadow.ScaleType = Enum.ScaleType.Slice
-    shadow.SliceCenter = Rect.new(10, 10, 118, 118)
-    shadow.ZIndex = 0
+    shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    shadow.BackgroundTransparency = 0.6
+    shadow.BorderSizePixel = 0
+    shadow.Position = UDim2.new(0.5, 2, 0.5, 3) -- смещение вниз для объёма
+    shadow.Size = UDim2.new(1, 0, 1, 0)
+    shadow.ZIndex = 0 -- позади карточки
+
+    local shadowCorner = Instance.new("UICorner")
+    shadowCorner.Name = "shadowCorner"
+    shadowCorner.Parent = shadow
+    shadowCorner.CornerRadius = UDim.new(0, CARD_RADIUS)
 
     -- ---------- Акцентная полоска severity (тонкая пилюля слева) ----------
     local severityFrame = Instance.new("Frame")
@@ -177,6 +182,7 @@ local function createNotificationTemplate(name, bgColor, severityColor, icon, de
         iconBadge.BorderSizePixel = 0
         iconBadge.Position = UDim2.new(0, 15, 0.5, 0)
         iconBadge.Size = UDim2.new(0, 42, 0, 42)
+        iconBadge.ZIndex = 1
 
         local badgeCorner = Instance.new("UICorner")
         badgeCorner.Name = "badgeCorner"
@@ -193,6 +199,32 @@ local function createNotificationTemplate(name, bgColor, severityColor, icon, de
         })
         badgeGradient.Parent = iconBadge
 
+        -- ============================================================
+        -- ИСПРАВЛЕНИЕ 2: Обводка бейджа для лучшей видимости
+        -- ============================================================
+        local badgeStroke = Instance.new("UIStroke")
+        badgeStroke.Name = "badgeStroke"
+        badgeStroke.Parent = iconBadge
+        badgeStroke.Color = Color3.fromRGB(255, 255, 255)
+        badgeStroke.Transparency = 0.4
+        badgeStroke.Thickness = 1
+
+        -- ============================================================
+        -- ИСПРАВЛЕНИЕ 3: Тёмная подложка иконки (улучшает читаемость)
+        -- ============================================================
+        local imageShadow = Instance.new("ImageLabel")
+        imageShadow.Name = "imageShadow"
+        imageShadow.Parent = iconBadge
+        imageShadow.AnchorPoint = Vector2.new(0.5, 0.5)
+        imageShadow.BackgroundTransparency = 1
+        imageShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+        imageShadow.Size = UDim2.new(0, 25, 0, 25) -- чуть больше основной
+        imageShadow.Image = icon
+        imageShadow.ImageColor3 = Color3.fromRGB(0, 0, 0) -- чёрный цвет
+        imageShadow.ImageTransparency = 0.8
+        imageShadow.ScaleType = Enum.ScaleType.Fit
+        imageShadow.ZIndex = 0
+
         local image = Instance.new("ImageLabel")
         image.Name = "image"
         image.Parent = iconBadge
@@ -202,6 +234,7 @@ local function createNotificationTemplate(name, bgColor, severityColor, icon, de
         image.Size = UDim2.new(0, 21, 0, 21)
         image.Image = icon
         image.ImageColor3 = GLYPH_COLOR
+        image.ZIndex = 1
     end
 
     -- ---------- Область с текстом ----------
@@ -538,10 +571,12 @@ function Notification:changeColor(primary, secondary, textColor)
             progressBar.BackgroundColor3 = secondary
         end
 
-        -- совместимость со старой структурой (иконка прямо в templateFrame)
+        -- ============================================================
+        -- ИСПРАВЛЕНИЕ 4: Убрали перекрашивание иконки (осталась белой)
+        -- ============================================================
         local image = templateFrame:FindFirstChild("image")
         if image and image:IsA("ImageLabel") then
-            image.ImageColor3 = secondary
+            image.ImageColor3 = GLYPH_COLOR -- оставляем белый, чтобы не сливалась с фоном
         end
     end
 
