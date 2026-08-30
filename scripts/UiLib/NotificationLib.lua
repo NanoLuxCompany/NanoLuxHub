@@ -1,310 +1,561 @@
--- NanoLux Notification Library — Apple-style
+-- ============================================================
+-- Notification.lua — пересобранный визуал в стиле Apple
+-- (тёмное стекло / translucency / squircle-бейджи / мягкие твины)
+--
+-- ВАЖНО: публичный API и внутренняя структура имён инстансов
+-- полностью сохранены. Все методы и сигнатуры как в оригинале:
+--   Notification.new(notifType, heading, body, autoRemove, autoRemoveTime, callback)
+--   Notification:changeHeading(newHeading)
+--   Notification:changeBody(newBody)
+--   Notification:deleteTimeout(timeout)
+--   Notification:delete()
+--   Notification:changeColor(primary, secondary, textColor)
+-- Типы: "error", "info", "message", "success", "warning"
+-- ============================================================
+
 local Notification = {}
 Notification.__index = Notification
 
-local TS = game:GetService("TweenService")
-local CoreGui = game:GetService("CoreGui")
+local ts = game:GetService("TweenService")
+local ss = game:GetService("SoundService")
+local txtS = game:GetService("TextService")
 
--- ── ScreenGui ──────────────────────────────────────────────
-local Gui = Instance.new("ScreenGui")
-Gui.Name = "NanoLuxNotifications"
-Gui.Parent = CoreGui
-Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-Gui.ResetOnSpawn = false
-Gui.DisplayOrder = 999
+-- ============================================================
+-- Дизайн-константы (Apple-style токены)
+-- ============================================================
+local NOTIF_WIDTH    = 340
+local NOTIF_HEIGHT   = 72
+local NOTIF_PADDING  = 10
+local HOLDER_MARGIN  = 14
+local CARD_RADIUS    = 14
 
--- ── Container (top-right) ──────────────────────────────────
-local Container = Instance.new("Frame")
-Container.Name = "Container"
-Container.Parent = Gui
-Container.AnchorPoint = Vector2.new(1, 0)
-Container.Position = UDim2.new(1, -16, 0, 16)
-Container.Size = UDim2.new(0, 360, 1, -32)
-Container.BackgroundTransparency = 1
-Container.ClipsDescendants = false
+local CARD_COLOR     = Color3.fromRGB(28, 28, 32)   -- тёмная стеклянная карточка
+local HEADING_COLOR  = Color3.fromRGB(242, 242, 247) -- iOS label color
+local BODY_COLOR     = Color3.fromRGB(199, 199, 204) -- iOS secondary label
+local GLYPH_COLOR    = Color3.fromRGB(255, 255, 255) -- белый глиф на бейдже
+local CLOSE_COLOR    = Color3.fromRGB(235, 235, 240)
 
-local Layout = Instance.new("UIListLayout")
-Layout.Parent = Container
-Layout.SortOrder = Enum.SortOrder.LayoutOrder
-Layout.VerticalAlignment = Enum.VerticalAlignment.Top
-Layout.HorizontalAlignment = Enum.HorizontalAlignment.Right
-Layout.Padding = UDim.new(0, 10)
+-- Системные цвета iOS/macOS (dark-mode палитра)
+local IOS_RED        = Color3.fromRGB(255, 69, 58)   -- systemRed
+local IOS_BLUE       = Color3.fromRGB(10, 132, 255)  -- systemBlue
+local IOS_GREEN      = Color3.fromRGB(48, 209, 88)   -- systemGreen
+local IOS_YELLOW     = Color3.fromRGB(255, 214, 10)  -- systemYellow
+local IOS_GRAY       = Color3.fromRGB(142, 142, 147) -- systemGray
 
--- ── Colors ─────────────────────────────────────────────────
-local COLORS = {
-    error   = { bg = Color3.fromRGB(255, 59, 48),  accent = Color3.fromRGB(255, 69, 58),  text = Color3.new(1,1,1) },
-    success = { bg = Color3.fromRGB(52, 199, 89),  accent = Color3.fromRGB(48, 209, 88),  text = Color3.new(1,1,1) },
-    warning = { bg = Color3.fromRGB(255, 204, 0),  accent = Color3.fromRGB(255, 214, 10), text = Color3.fromRGB(30,30,30) },
-    info    = { bg = Color3.fromRGB(10, 132, 255), accent = Color3.fromRGB(0, 122, 255),  text = Color3.new(1,1,1) },
-    message = { bg = Color3.fromRGB(142, 142, 147), accent = Color3.fromRGB(142, 142, 147), text = Color3.new(1,1,1) },
-}
+local SHADOW_IMAGE   = "rbxassetid://1316045217"     -- классическая мягкая тень
+local CLOSE_ICON     = "rbxassetid://9127564477"     -- тот же X, что и раньше
 
--- ── Icon symbols (unicode / fallback) ──────────────────────
-local ICONS = {
-    error   = "rbxassetid://6031265976",
-    success = "rbxassetid://6031265976",
-    warning = "rbxassetid://6031265976",
-    info    = "rbxassetid://6031265976",
-    message = "rbxassetid://6031265976",
-}
+-- Тайминги анимаций (бархатный Quint вместо резкого Quad)
+local OPEN_TWEEN     = TweenInfo.new(0.5,  Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+local CLOSE_TWEEN    = TweenInfo.new(0.3,  Enum.EasingStyle.Quint, Enum.EasingDirection.In)
+local HOVER_TWEEN    = TweenInfo.new(0.15, Enum.EasingStyle.Quad,  Enum.EasingDirection.Out)
 
--- ── Build one notification frame ───────────────────────────
-local function buildNotif(type, title, text)
-    local c = COLORS[type] or COLORS.info
+-- ============================================================
+-- Основной GUI (имя и поведение — как в оригинале)
+-- ============================================================
+local notifications = Instance.new("ScreenGui")
+notifications.Name = "JxereasNotifications"
+notifications.Parent = game:GetService("CoreGui")
+notifications.ZIndexBehavior = Enum.ZIndexBehavior.Global
+notifications.ResetOnSpawn = false
 
-    -- wrapper (clips children for smooth slide)
-    local Wrap = Instance.new("Frame")
-    Wrap.Name = "Notif_" .. type
-    Wrap.AnchorPoint = Vector2.new(1, 0)
-    Wrap.Position = UDim2.new(1, 400, 0, 0)
-    Wrap.Size = UDim2.new(1, 0, 0, 0)
-    Wrap.AutomaticSize = Enum.AutomaticSize.Y
-    Wrap.BackgroundTransparency = 1
-    Wrap.ClipsDescendants = true
+-- Контейнер для уведомлений
+local notifsHolderFrame = Instance.new("Frame")
+notifsHolderFrame.Name = "notifsHolderFrame"
+notifsHolderFrame.Parent = notifications
+notifsHolderFrame.AnchorPoint = Vector2.new(1, 1)
+notifsHolderFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+notifsHolderFrame.BackgroundTransparency = 1
+notifsHolderFrame.BorderSizePixel = 0
+notifsHolderFrame.ClipsDescendants = true
+notifsHolderFrame.Position = UDim2.new(1, -HOLDER_MARGIN, 1, -HOLDER_MARGIN)
+notifsHolderFrame.Size = UDim2.new(0, NOTIF_WIDTH, 0.5, 0)
 
-    -- main card
-    local Card = Instance.new("Frame")
-    Card.Name = "Card"
-    Card.Parent = Wrap
-    Card.AutomaticSize = Enum.AutomaticSize.Y
-    Card.Size = UDim2.new(1, 0, 0, 0)
-    Card.BackgroundColor3 = Color3.fromRGB(44, 44, 46)
-    Card.BorderSizePixel = 0
+-- Layout для уведомлений
+local notifHolderListLayout = Instance.new("UIListLayout")
+notifHolderListLayout.Name = "notifHolderListLayout"
+notifHolderListLayout.Parent = notifsHolderFrame
+notifHolderListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+notifHolderListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
+notifHolderListLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+notifHolderListLayout.Padding = UDim.new(0, NOTIF_PADDING)
 
-    Instance.new("UICorner", Card).CornerRadius = UDim.new(0, 16)
+-- ============================================================
+-- Функция для создания шаблона уведомления
+-- Сигнатура и имена инстансов сохранены 1-в-1,
+-- изменён только визуальный слой.
+-- ============================================================
+local function createNotificationTemplate(name, bgColor, severityColor, icon, defaultHeading)
+    local template = Instance.new("Frame")
+    template.Name = name
+    template.AnchorPoint = Vector2.new(1, 1)
+    template.BackgroundColor3 = bgColor
+    template.BorderSizePixel = 0
+    template.BackgroundTransparency = 1
+    template.Size = UDim2.new(1, 0, 0, NOTIF_HEIGHT)
 
-    local Stroke = Instance.new("UIStroke", Card)
-    Stroke.Color = c.accent
-    Stroke.Thickness = 1
-    Stroke.Transparency = 0.7
-    Stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    -- ---------- Карточка (тёмное стекло) ----------
+    local templateFrame = Instance.new("Frame")
+    templateFrame.Name = "templateFrame"
+    templateFrame.Parent = template
+    templateFrame.BackgroundColor3 = bgColor
+    templateFrame.BackgroundTransparency = 0.06 -- лёгкая прозрачность = frosted glass
+    templateFrame.BorderSizePixel = 0
+    templateFrame.Size = UDim2.new(1, 0, 1, 0)
 
-    -- inner padding
-    local Pad = Instance.new("UIPadding", Card)
-    Pad.PaddingTop    = UDim.new(0, 14)
-    Pad.PaddingBottom = UDim.new(0, 14)
-    Pad.PaddingLeft   = UDim.new(0, 16)
-    Pad.PaddingRight  = UDim.new(0, 44)
+    local templateCorner = Instance.new("UICorner")
+    templateCorner.Name = "templateCorner"
+    templateCorner.Parent = templateFrame
+    templateCorner.CornerRadius = UDim.new(0, CARD_RADIUS)
 
-    -- layout
-    local L = Instance.new("UIListLayout", Card)
-    L.FillDirection = Enum.FillDirection.Horizontal
-    L.VerticalAlignment = Enum.VerticalAlignment.Top
-    L.Padding = UDim.new(0, 12)
+    -- Стеклянный блик: сверху светлее, снизу темнее
+    local glassGradient = Instance.new("UIGradient")
+    glassGradient.Name = "glassGradient"
+    glassGradient.Rotation = 90
+    glassGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(198, 198, 208)),
+    })
+    glassGradient.Parent = templateFrame
 
-    -- ── Accent strip (left) ──────────────────────────────
-    local Strip = Instance.new("Frame")
-    Strip.Name = "Strip"
-    Strip.LayoutOrder = 0
-    Strip.Parent = Card
-    Strip.Size = UDim2.new(0, 4, 0, 0)
-    Strip.AutomaticSize = Enum.AutomaticSize.Y
-    Strip.BackgroundColor3 = c.accent
-    Strip.BorderSizePixel = 0
-    Instance.new("UICorner", Strip).CornerRadius = UDim.new(1, 0)
+    -- Тонкая стеклянная обводка по контуру
+    local glassStroke = Instance.new("UIStroke")
+    glassStroke.Name = "glassStroke"
+    glassStroke.Color = Color3.fromRGB(255, 255, 255)
+    glassStroke.Transparency = 0.86
+    glassStroke.Thickness = 1
+    glassStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    glassStroke.Parent = templateFrame
 
-    -- ── Icon circle ──────────────────────────────────────
-    local IconWrap = Instance.new("Frame")
-    IconWrap.Name = "IconWrap"
-    IconWrap.LayoutOrder = 1
-    IconWrap.Parent = Card
-    IconWrap.Size = UDim2.new(0, 36, 0, 36)
-    IconWrap.BackgroundColor3 = c.accent
-    IconWrap.BackgroundTransparency = 0.85
-    IconWrap.BorderSizePixel = 0
-    Instance.new("UICorner", IconWrap).CornerRadius = UDim.new(1, 0)
+    -- Мягкая тень под карточкой
+    local shadow = Instance.new("ImageLabel")
+    shadow.Name = "shadow"
+    shadow.Parent = templateFrame
+    shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+    shadow.BackgroundTransparency = 1
+    shadow.Position = UDim2.new(0.5, 0, 0.5, 1)
+    shadow.Size = UDim2.new(1, 18, 1, 18)
+    shadow.Image = SHADOW_IMAGE
+    shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+    shadow.ImageTransparency = 0.55
+    shadow.ScaleType = Enum.ScaleType.Slice
+    shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+    shadow.ZIndex = 0
 
-    local IconImg = Instance.new("ImageLabel")
-    IconImg.Name = "Icon"
-    IconImg.Parent = IconWrap
-    IconImg.AnchorPoint = Vector2.new(0.5, 0.5)
-    IconImg.Position = UDim2.new(0.5, 0, 0.5, 0)
-    IconImg.Size = UDim2.new(0, 18, 0, 18)
-    IconImg.BackgroundTransparency = 1
-    IconImg.Image = ICONS[type] or ICONS.info
-    IconImg.ImageColor3 = c.accent
-    IconImg.ScaleType = Enum.ScaleType.Fit
+    -- ---------- Акцентная полоска severity (тонкая пилюля слева) ----------
+    local severityFrame = Instance.new("Frame")
+    severityFrame.Name = "severityFrame"
+    severityFrame.Parent = templateFrame
+    severityFrame.AnchorPoint = Vector2.new(0, 0.5)
+    severityFrame.BackgroundColor3 = severityColor
+    severityFrame.BorderSizePixel = 0
+    severityFrame.Position = UDim2.new(0, 0, 0.5, 0)
+    severityFrame.Size = UDim2.new(0, 3, 1, -30)
 
-    -- ── Text block ───────────────────────────────────────
-    local TextBlock = Instance.new("Frame")
-    TextBlock.Name = "TextBlock"
-    TextBlock.LayoutOrder = 2
-    TextBlock.Parent = Card
-    TextBlock.Size = UDim2.new(1, -60, 0, 0)
-    TextBlock.AutomaticSize = Enum.AutomaticSize.Y
-    TextBlock.BackgroundTransparency = 1
+    local severityCorner = Instance.new("UICorner")
+    severityCorner.Name = "severityCorner"
+    severityCorner.Parent = severityFrame
+    severityCorner.CornerRadius = UDim.new(1, 0)
 
-    local TextLayout = Instance.new("UIListLayout", TextBlock)
-    TextLayout.Padding = UDim.new(0, 3)
+    -- Инстанс сохранён для совместимости changeColor() (невидимый)
+    local hideSeverityCornerFrame = Instance.new("Frame")
+    hideSeverityCornerFrame.Name = "hideSeverityCornerFrame"
+    hideSeverityCornerFrame.Parent = severityFrame
+    hideSeverityCornerFrame.BackgroundColor3 = bgColor
+    hideSeverityCornerFrame.BackgroundTransparency = 1
+    hideSeverityCornerFrame.BorderSizePixel = 0
+    hideSeverityCornerFrame.Position = UDim2.new(0.5, 0, 0, 0)
+    hideSeverityCornerFrame.Size = UDim2.new(0.5, 0, 1, 0)
 
-    local TitleLbl = Instance.new("TextLabel")
-    TitleLbl.Name = "Title"
-    TitleLbl.Parent = TextBlock
-    TitleLbl.Size = UDim2.new(1, 0, 0, 20)
-    TitleLbl.AutomaticSize = Enum.AutomaticSize.Y
-    TitleLbl.BackgroundTransparency = 1
-    TitleLbl.Font = Enum.Font.GothamBold
-    TitleLbl.Text = title or "Notification"
-    TitleLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
-    TitleLbl.TextSize = 15
-    TitleLbl.TextXAlignment = Enum.TextXAlignment.Left
-    TitleLbl.TextYAlignment = Enum.TextYAlignment.Top
-    TitleLbl.TextWrapped = true
+    -- ---------- Иконка: squircle-бейдж в стиле app-icon (если есть) ----------
+    if icon then
+        local iconBadge = Instance.new("Frame")
+        iconBadge.Name = "iconBadge"
+        iconBadge.Parent = templateFrame
+        iconBadge.AnchorPoint = Vector2.new(0, 0.5)
+        iconBadge.BackgroundColor3 = severityColor
+        iconBadge.BorderSizePixel = 0
+        iconBadge.Position = UDim2.new(0, 15, 0.5, 0)
+        iconBadge.Size = UDim2.new(0, 42, 0, 42)
 
-    local BodyLbl = Instance.new("TextLabel")
-    BodyLbl.Name = "Body"
-    BodyLbl.Parent = TextBlock
-    BodyLbl.Size = UDim2.new(1, 0, 0, 0)
-    BodyLbl.AutomaticSize = Enum.AutomaticSize.Y
-    BodyLbl.BackgroundTransparency = 1
-    BodyLbl.Font = Enum.Font.Gotham
-    BodyLbl.Text = text or ""
-    BodyLbl.TextColor3 = Color3.fromRGB(200, 200, 200)
-    BodyLbl.TextSize = 13
-    BodyLbl.TextXAlignment = Enum.TextXAlignment.Left
-    BodyLbl.TextYAlignment = Enum.TextYAlignment.Top
-    BodyLbl.TextWrapped = true
+        local badgeCorner = Instance.new("UICorner")
+        badgeCorner.Name = "badgeCorner"
+        badgeCorner.Parent = iconBadge
+        badgeCorner.CornerRadius = UDim.new(0.3, 0) -- «непрерывные» углы а-ля squircle
 
-    -- hide body if empty
-    if text == nil or text == "" then
-        BodyLbl.Visible = false
+        -- Глянцевый градиент бейджа: сверху светлее
+        local badgeGradient = Instance.new("UIGradient")
+        badgeGradient.Name = "badgeGradient"
+        badgeGradient.Rotation = 90
+        badgeGradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(190, 190, 200)),
+        })
+        badgeGradient.Parent = iconBadge
+
+        local image = Instance.new("ImageLabel")
+        image.Name = "image"
+        image.Parent = iconBadge
+        image.AnchorPoint = Vector2.new(0.5, 0.5)
+        image.BackgroundTransparency = 1
+        image.Position = UDim2.new(0.5, 0, 0.5, 0)
+        image.Size = UDim2.new(0, 21, 0, 21)
+        image.Image = icon
+        image.ImageColor3 = GLYPH_COLOR
     end
 
-    -- ── Close button ─────────────────────────────────────
-    local Close = Instance.new("TextButton")
-    Close.Name = "Close"
-    Close.Parent = Card
-    Close.LayoutOrder = 3
-    Close.Size = UDim2.new(0, 24, 0, 24)
-    Close.Position = UDim2.new(1, -36, 0, 14)
-    Close.AnchorPoint = Vector2.new(0, 0)
-    Close.BackgroundTransparency = 1
-    Close.Font = Enum.Font.GothamBold
-    Close.Text = "×"
-    Close.TextColor3 = Color3.fromRGB(140, 140, 140)
-    Close.TextSize = 20
-    Close.AutoButtonColor = false
+    -- ---------- Область с текстом ----------
+    local informationFrame = Instance.new("Frame")
+    informationFrame.Name = "informationFrame"
+    informationFrame.Parent = templateFrame
+    informationFrame.BackgroundTransparency = 1
+    informationFrame.Position = UDim2.new(0, icon and 69 or 16, 0, 0)
+    informationFrame.Size = UDim2.new(1, icon and -105 or -52, 1, 0)
 
-    -- hover
-    local hoverConn
-    hoverConn = Close.MouseEnter:Connect(function()
-        Close.TextColor3 = Color3.fromRGB(255, 255, 255)
-    end)
-    Close.MouseLeave:Connect(function()
-        Close.TextColor3 = Color3.fromRGB(140, 140, 140)
-    end)
+    local headingText = Instance.new("TextLabel")
+    headingText.Name = "headingText"
+    headingText.Parent = informationFrame
+    headingText.BackgroundTransparency = 1
+    headingText.Position = UDim2.new(0, 0, 0, 13)
+    headingText.Size = UDim2.new(1, 0, 0, 18)
+    headingText.Font = Enum.Font.GothamBold
+    headingText.Text = defaultHeading
+    headingText.TextColor3 = HEADING_COLOR
+    headingText.TextSize = 13
+    headingText.TextXAlignment = Enum.TextXAlignment.Left
+    headingText.TextYAlignment = Enum.TextYAlignment.Bottom
+    headingText.TextTruncate = Enum.TextTruncate.AtEnd
+    headingText.ClipsDescendants = true
 
-    return Wrap, Close
+    local bodyText = Instance.new("TextLabel")
+    bodyText.Name = "bodyText"
+    bodyText.Parent = informationFrame
+    bodyText.BackgroundTransparency = 1
+    bodyText.Position = UDim2.new(0, 0, 0, 32)
+    bodyText.Size = UDim2.new(1, 0, 0, 28)
+    bodyText.Font = Enum.Font.Gotham
+    bodyText.Text = "Текст уведомления"
+    bodyText.TextColor3 = BODY_COLOR
+    bodyText.TextSize = 12
+    bodyText.TextWrapped = true
+    bodyText.TextXAlignment = Enum.TextXAlignment.Left
+    bodyText.TextYAlignment = Enum.TextYAlignment.Top
+    bodyText.TextTruncate = Enum.TextTruncate.AtEnd
+    bodyText.ClipsDescendants = true
+
+    -- ---------- Кнопка закрытия (круглая, проявляется при наведении) ----------
+    local closeButton = Instance.new("ImageButton")
+    closeButton.Name = "closeButton"
+    closeButton.Parent = templateFrame
+    closeButton.AnchorPoint = Vector2.new(1, 0)
+    closeButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    closeButton.BackgroundTransparency = 0.92
+    closeButton.BorderSizePixel = 0
+    closeButton.Position = UDim2.new(1, -10, 0, 10)
+    closeButton.Size = UDim2.new(0, 18, 0, 18)
+    closeButton.Image = CLOSE_ICON
+    closeButton.ImageColor3 = CLOSE_COLOR
+    closeButton.ImageTransparency = 0.35
+    closeButton.ScaleType = Enum.ScaleType.Fit
+
+    local closeCorner = Instance.new("UICorner")
+    closeCorner.Name = "closeCorner"
+    closeCorner.Parent = closeButton
+    closeCorner.CornerRadius = UDim.new(1, 0)
+
+    -- Инстанс сохранён для совместимости changeColor() (невидимый)
+    local cornerHidingFrame = Instance.new("Frame")
+    cornerHidingFrame.Name = "cornerHidingFrame"
+    cornerHidingFrame.Parent = templateFrame
+    cornerHidingFrame.AnchorPoint = Vector2.new(1, 0)
+    cornerHidingFrame.BackgroundColor3 = bgColor
+    cornerHidingFrame.BackgroundTransparency = 1
+    cornerHidingFrame.BorderSizePixel = 0
+    cornerHidingFrame.Position = UDim2.new(1, 0, 0, 0)
+    cornerHidingFrame.Size = UDim2.new(0.1, 0, 1, 0)
+    cornerHidingFrame.ZIndex = 0
+
+    -- ---------- Тонкий прогресс-бар автоудаления (внизу карточки) ----------
+    local progressBar = Instance.new("Frame")
+    progressBar.Name = "progressBar"
+    progressBar.Parent = templateFrame
+    progressBar.AnchorPoint = Vector2.new(0, 1)
+    progressBar.BackgroundColor3 = severityColor
+    progressBar.BackgroundTransparency = 0.35
+    progressBar.BorderSizePixel = 0
+    progressBar.Position = UDim2.new(0, 16, 1, -5)
+    progressBar.Size = UDim2.new(1, -32, 0, 3)
+    progressBar.Visible = false
+
+    local progressCorner = Instance.new("UICorner")
+    progressCorner.Name = "progressCorner"
+    progressCorner.Parent = progressBar
+    progressCorner.CornerRadius = UDim.new(1, 0)
+
+    return template
 end
 
--- ── Remove oldest if overflow ──────────────────────────────
-local function trimOverflow()
-    local count = #Container:GetChildren() - 1 -- minus Layout
-    if count > 5 then
-        local children = Container:GetChildren()
-        for _, ch in ipairs(children) do
-            if ch:IsA("Frame") and ch.Name:find("Notif_") and count > 5 then
-                ch:Destroy()
-                count = count - 1
-            end
+-- ============================================================
+-- Шаблоны уведомлений — iOS системные цвета
+-- ============================================================
+local errorTemplate = createNotificationTemplate(
+    "error",
+    CARD_COLOR,
+    IOS_RED,
+    "rbxassetid://9072920609",
+    "Ошибка"
+)
+
+local infoTemplate = createNotificationTemplate(
+    "info",
+    CARD_COLOR,
+    IOS_BLUE,
+    "rbxassetid://9072944922",
+    "Информация"
+)
+
+local successTemplate = createNotificationTemplate(
+    "success",
+    CARD_COLOR,
+    IOS_GREEN,
+    "rbxassetid://9073052584",
+    "Успех"
+)
+
+local warningTemplate = createNotificationTemplate(
+    "warning",
+    CARD_COLOR,
+    IOS_YELLOW,
+    "rbxassetid://9072448788",
+    "Предупреждение"
+)
+
+local messageTemplate = createNotificationTemplate(
+    "message",
+    CARD_COLOR,
+    IOS_GRAY,
+    nil,
+    "Сообщение"
+)
+
+-- ============================================================
+-- Функции для управления уведомлениями (логика без изменений)
+-- ============================================================
+local function scaleNotifHolderMaxNotifs()
+    local holderHeight = notifsHolderFrame.AbsoluteSize.Y
+    local notifHeight = NOTIF_HEIGHT
+    local padding = notifHolderListLayout.Padding.Offset
+
+    local maxNotifs = math.floor(holderHeight / (notifHeight + padding))
+    if maxNotifs < 1 then maxNotifs = 1 end
+
+    local totalHeight = (notifHeight * maxNotifs) + (padding * (maxNotifs - 1))
+    notifsHolderFrame.Size = UDim2.new(0, NOTIF_WIDTH, 0, totalHeight)
+end
+
+local function deleteNotifsOutsideFrame()
+    local contentHeight = notifHolderListLayout.AbsoluteContentSize.Y
+    local frameHeight = notifsHolderFrame.AbsoluteSize.Y
+
+    if contentHeight <= frameHeight then return end
+
+    local overflow = contentHeight - frameHeight
+    local notifHeight = NOTIF_HEIGHT + notifHolderListLayout.Padding.Offset
+
+    local notifsToRemove = math.ceil(overflow / notifHeight)
+
+    for i = 1, notifsToRemove do
+        local oldestNotif = notifsHolderFrame:FindFirstChildOfClass("Frame")
+        if oldestNotif then
+            oldestNotif:Destroy()
+        else
+            break
         end
     end
 end
 
--- ── Animation helpers ──────────────────────────────────────
-local function slideIn(wrap)
-    local tween = TS:Create(wrap,
-        TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
-        { Position = UDim2.new(1, 0, 0, 0) }
-    )
-    tween:Play()
-    return tween
-end
-
-local function slideOut(wrap, cb)
-    local tween = TS:Create(wrap,
-        TweenInfo.new(0.35, Enum.EasingStyle.Quint, Enum.EasingDirection.In),
-        { Position = UDim2.new(1, 400, 0, 0) }
-    )
-    tween.Completed:Connect(function()
-        pcall(function() wrap:Destroy() end)
-        if cb then pcall(cb) end
-    end)
-    tween:Play()
-    return tween
-end
-
--- ── PUBLIC API ─────────────────────────────────────────────
+-- ============================================================
+-- Основная функция создания уведомления (сигнатура без изменений)
+-- ============================================================
 function Notification.new(notifType, heading, body, autoRemove, autoRemoveTime, callback)
-    notifType = (notifType or "info"):lower()
-    if not COLORS[notifType] then notifType = "info" end
+    local notificationTypes = {
+        error = errorTemplate,
+        info = infoTemplate,
+        message = messageTemplate,
+        success = successTemplate,
+        warning = warningTemplate
+    }
 
-    local Wrap, CloseBtn = buildNotif(notifType, heading, body)
-    Wrap.Parent = Container
-    Wrap.LayoutOrder = tick()
+    local template = notificationTypes[notifType:lower()]
+    if not template then
+        error("Неверный тип уведомления. Доступные: error, info, message, success, warning")
+    end
 
-    -- slight delay so list layout settles
-    task.defer(function()
-        slideIn(Wrap)
+    local notif = template:Clone()
+    notif.templateFrame.Position = UDim2.new(1, 0, 0, 0)
+    notif.LayoutOrder = tick()
+
+    -- Устанавливаем текст
+    notif.templateFrame.informationFrame.headingText.Text = heading or "Уведомление"
+    notif.templateFrame.informationFrame.bodyText.Text = body or ""
+
+    -- Функция открытия уведомления (плавный заезд справа, Quint-Out)
+    local function openNotif()
+        ts:Create(notif.templateFrame, OPEN_TWEEN, {Position = UDim2.new(0, 0, 0, 0)}):Play()
+    end
+
+    -- Функция закрытия уведомления (с защитой от зависания, как в оригинале)
+    local function closeNotif()
+        if not notif or not notif.Parent or not notif.templateFrame or not notif.templateFrame.Parent then
+            return
+        end
+        local frame = notif.templateFrame
+        -- Анимация скрытия, но не блокируем поток (горячая защита от зависания,
+        -- если GUI будет уничтожен посреди твина).
+        local finished = false
+        local closeTween = ts:Create(frame, CLOSE_TWEEN, {Position = UDim2.new(1, 0, 0, 0)})
+        closeTween.Completed:Connect(function()
+            finished = true
+        end)
+        closeTween:Play()
+
+        task.spawn(function()
+            local waited = 0
+            while not finished and waited < 1 do
+                task.wait(0.05)
+                waited = waited + 0.05
+            end
+            if callback and type(callback) == "function" then
+                pcall(callback)
+            end
+            pcall(function()
+                if notif and notif.Parent then
+                    notif:Destroy()
+                end
+            end)
+        end)
+    end
+
+    -- Обработчик кнопки закрытия
+    notif.templateFrame.closeButton.MouseButton1Click:Connect(function()
+        closeNotif()
     end)
 
-    local removed = false
-    local function dismiss()
-        if removed then return end
-        removed = true
-        slideOut(Wrap, callback)
-    end
+    -- Hover-эффект кнопки закрытия (как на macOS — проявляется при наведении)
+    notif.templateFrame.closeButton.MouseEnter:Connect(function()
+        if notif and notif.Parent then
+            ts:Create(notif.templateFrame.closeButton, HOVER_TWEEN, {ImageTransparency = 0, BackgroundTransparency = 0.8}):Play()
+        end
+    end)
+    notif.templateFrame.closeButton.MouseLeave:Connect(function()
+        if notif and notif.Parent then
+            ts:Create(notif.templateFrame.closeButton, HOVER_TWEEN, {ImageTransparency = 0.35, BackgroundTransparency = 0.92}):Play()
+        end
+    end)
 
-    CloseBtn.MouseButton1Click:Connect(dismiss)
+    -- Добавляем в контейнер и анимируем
+    notif.Parent = notifsHolderFrame
+    openNotif()
 
+    -- Автоудаление (+ прогресс-бар обратного отсчёта)
     if autoRemove then
-        task.delay(autoRemoveTime or 3, dismiss)
+        autoRemoveTime = autoRemoveTime or 5
+
+        local progressBar = notif.templateFrame:FindFirstChild("progressBar")
+        if progressBar then
+            progressBar.Visible = true
+            progressBar.Size = UDim2.new(1, -32, 0, 3)
+            ts:Create(progressBar, TweenInfo.new(autoRemoveTime, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut), {Size = UDim2.new(0, 0, 0, 3)}):Play()
+        end
+
+        task.delay(autoRemoveTime, function()
+            if notif and notif.Parent then
+                closeNotif()
+            end
+        end)
     end
 
-    local obj = setmetatable({
-        Instance = Wrap,
-        _dismiss = dismiss,
-    }, Notification)
+    -- Создаем объект уведомления
+    local notificationObj = setmetatable({}, Notification)
+    notificationObj.Instance = notif
+    notificationObj._closeFunction = closeNotif
 
-    task.defer(trimOverflow)
-    return obj
+    return notificationObj
+end
+
+-- ============================================================
+-- Методы для управления уведомлением (без изменений поведения)
+-- ============================================================
+function Notification:changeHeading(newHeading)
+    if self.Instance and self.Instance.Parent then
+        self.Instance.templateFrame.informationFrame.headingText.Text = newHeading
+    end
+end
+
+function Notification:changeBody(newBody)
+    if self.Instance and self.Instance.Parent then
+        self.Instance.templateFrame.informationFrame.bodyText.Text = newBody
+    end
+end
+
+function Notification:deleteTimeout(timeout)
+    timeout = timeout or 3
+    task.delay(timeout, function()
+        self:delete()
+    end)
 end
 
 function Notification:delete()
-    if self._dismiss then self._dismiss() end
-end
-
-function Notification:changeHeading(txt)
-    if self.Instance and self.Instance.Parent then
-        local card = self.Instance:FindFirstChild("Card")
-        if card then
-            local tb = card:FindFirstChild("TextBlock")
-            if tb then
-                local t = tb:FindFirstChild("Title")
-                if t then t.Text = txt end
-            end
-        end
+    if self._closeFunction then
+        self._closeFunction()
     end
 end
 
-function Notification:changeBody(txt)
-    if self.Instance and self.Instance.Parent then
-        local card = self.Instance:FindFirstChild("Card")
-        if card then
-            local tb = card:FindFirstChild("TextBlock")
-            if tb then
-                local b = tb:FindFirstChild("Body")
-                if b then
-                    b.Text = txt or ""
-                    b.Visible = txt ~= nil and txt ~= ""
-                end
-            end
+function Notification:changeColor(primary, secondary, textColor)
+    if not self.Instance or not self.Instance.Parent then return end
+
+    local templateFrame = self.Instance.templateFrame
+
+    if primary then
+        templateFrame.BackgroundColor3 = primary
+        templateFrame.cornerHidingFrame.BackgroundColor3 = primary
+        templateFrame.severityFrame.hideSeverityCornerFrame.BackgroundColor3 = primary
+    end
+
+    if secondary then
+        templateFrame.severityFrame.BackgroundColor3 = secondary
+        templateFrame.closeButton.ImageColor3 = secondary
+
+        -- squircle-бейдж перекрашивается в акцентный цвет
+        local iconBadge = templateFrame:FindFirstChild("iconBadge")
+        if iconBadge then
+            iconBadge.BackgroundColor3 = secondary
         end
+
+        -- прогресс-бар тоже в акцентный цвет
+        local progressBar = templateFrame:FindFirstChild("progressBar")
+        if progressBar then
+            progressBar.BackgroundColor3 = secondary
+        end
+
+        -- совместимость со старой структурой (иконка прямо в templateFrame)
+        local image = templateFrame:FindFirstChild("image")
+        if image and image:IsA("ImageLabel") then
+            image.ImageColor3 = secondary
+        end
+    end
+
+    if textColor then
+        templateFrame.informationFrame.headingText.TextColor3 = textColor
+        templateFrame.informationFrame.bodyText.TextColor3 = textColor
     end
 end
 
-function Notification:deleteTimeout(t)
-    task.delay(t or 3, function() self:delete() end)
-end
+-- Обработчики изменения размеров
+notifsHolderFrame:GetPropertyChangedSignal("AbsoluteSize"):Connect(scaleNotifHolderMaxNotifs)
+notifHolderListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(deleteNotifsOutsideFrame)
+
+-- Инициализация
+scaleNotifHolderMaxNotifs()
 
 return Notification
