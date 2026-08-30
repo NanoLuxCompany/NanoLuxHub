@@ -128,47 +128,32 @@ local function createNotificationTemplate(name, bgColor, severityColor, icon, de
     glassStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
     glassStroke.Parent = templateFrame
 
-    -- ============================================================
-    -- УБРАНО: Тень полностью удалена (Shadow Frame удалён)
-    -- ============================================================
-
-    -- ---------- Акцентная полоска severity (тонкая пилюля слева) ----------
-    local severityFrame = Instance.new("Frame")
-    severityFrame.Name = "severityFrame"
-    severityFrame.Parent = templateFrame
-    severityFrame.AnchorPoint = Vector2.new(0, 0.5)
-    severityFrame.BackgroundColor3 = severityColor
-    severityFrame.BorderSizePixel = 0
-    severityFrame.Position = UDim2.new(0, 0, 0.5, 0)
-    severityFrame.Size = UDim2.new(0, 3, 1, -30)
-
-    local severityCorner = Instance.new("UICorner")
-    severityCorner.Name = "severityCorner"
-    severityCorner.Parent = severityFrame
-    severityCorner.CornerRadius = UDim.new(1, 0)
-
-    -- Инстанс сохранён для совместимости changeColor() (невидимый)
-    local hideSeverityCornerFrame = Instance.new("Frame")
-    hideSeverityCornerFrame.Name = "hideSeverityCornerFrame"
-    hideSeverityCornerFrame.Parent = severityFrame
-    hideSeverityCornerFrame.BackgroundColor3 = bgColor
-    hideSeverityCornerFrame.BackgroundTransparency = 1
-    hideSeverityCornerFrame.BorderSizePixel = 0
-    hideSeverityCornerFrame.Position = UDim2.new(0.5, 0, 0, 0)
-    hideSeverityCornerFrame.Size = UDim2.new(0.5, 0, 1, 0)
-
     -- ---------- Иконка (просто картинка, без бейджа и тени) ----------
     if icon then
+        -- Тёмная подложка для обводки (слегка увеличена)
+        local iconOutline = Instance.new("ImageLabel")
+        iconOutline.Name = "iconOutline"
+        iconOutline.Parent = templateFrame
+        iconOutline.AnchorPoint = Vector2.new(0, 0.5)
+        iconOutline.BackgroundTransparency = 1
+        iconOutline.Position = UDim2.new(0, 15, 0.5, 0) -- Центрируем
+        iconOutline.Size = UDim2.new(0, 30, 0, 30)      -- Размер больше (30 вместо 26) для канта
+        iconOutline.Image = icon
+        iconOutline.ImageColor3 = Color3.fromRGB(0, 0, 0) -- Чёрный цвет
+        iconOutline.ImageTransparency = 0.55              -- Прозрачность (регулируй плотность обводки)
+        iconOutline.ZIndex = 0                            -- Позади
+
+        -- Основная белая иконка
         local image = Instance.new("ImageLabel")
         image.Name = "image"
         image.Parent = templateFrame
         image.AnchorPoint = Vector2.new(0, 0.5)
         image.BackgroundTransparency = 1
-        image.Position = UDim2.new(0, 15, 0.5, 0)
-        image.Size = UDim2.new(0, 26, 0, 26) -- просто иконка без подложки
+        image.Position = UDim2.new(0, 15, 0.5, 0) -- То же место
+        image.Size = UDim2.new(0, 26, 0, 26)      -- Обычный размер
         image.Image = icon
-        image.ImageColor3 = GLYPH_COLOR
-        image.ZIndex = 1
+        image.ImageColor3 = GLYPH_COLOR           -- Белая иконка
+        image.ZIndex = 1                          -- Сверху
     end
 
     -- ---------- Область с текстом ----------
