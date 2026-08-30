@@ -102,7 +102,7 @@ local function createNotificationTemplate(name, bgColor, severityColor, icon, de
     templateFrame.BackgroundTransparency = 0.06 -- лёгкая прозрачность = frosted glass
     templateFrame.BorderSizePixel = 0
     templateFrame.Size = UDim2.new(1, 0, 1, 0)
-    templateFrame.ZIndex = 1 -- ставим поверх тени
+    templateFrame.ZIndex = 1
 
     local templateCorner = Instance.new("UICorner")
     templateCorner.Name = "templateCorner"
@@ -129,23 +129,8 @@ local function createNotificationTemplate(name, bgColor, severityColor, icon, de
     glassStroke.Parent = templateFrame
 
     -- ============================================================
-    -- ИСПРАВЛЕНИЕ 1: Тень теперь Frame с UICorner, а не ImageLabel
+    -- УБРАНО: Тень полностью удалена (Shadow Frame удалён)
     -- ============================================================
-    local shadow = Instance.new("Frame")
-    shadow.Name = "shadow"
-    shadow.Parent = template -- перенесли наружу, чтобы не обрезалась
-    shadow.AnchorPoint = Vector2.new(0.5, 0.5)
-    shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    shadow.BackgroundTransparency = 0.6
-    shadow.BorderSizePixel = 0
-    shadow.Position = UDim2.new(0.5, 2, 0.5, 3) -- смещение вниз для объёма
-    shadow.Size = UDim2.new(1, 0, 1, 0)
-    shadow.ZIndex = 0 -- позади карточки
-
-    local shadowCorner = Instance.new("UICorner")
-    shadowCorner.Name = "shadowCorner"
-    shadowCorner.Parent = shadow
-    shadowCorner.CornerRadius = UDim.new(0, CARD_RADIUS)
 
     -- ---------- Акцентная полоска severity (тонкая пилюля слева) ----------
     local severityFrame = Instance.new("Frame")
@@ -172,13 +157,27 @@ local function createNotificationTemplate(name, bgColor, severityColor, icon, de
     hideSeverityCornerFrame.Position = UDim2.new(0.5, 0, 0, 0)
     hideSeverityCornerFrame.Size = UDim2.new(0.5, 0, 1, 0)
 
+    -- ---------- Иконка (просто картинка, без бейджа и тени) ----------
+    if icon then
+        local image = Instance.new("ImageLabel")
+        image.Name = "image"
+        image.Parent = templateFrame
+        image.AnchorPoint = Vector2.new(0, 0.5)
+        image.BackgroundTransparency = 1
+        image.Position = UDim2.new(0, 15, 0.5, 0)
+        image.Size = UDim2.new(0, 26, 0, 26) -- просто иконка без подложки
+        image.Image = icon
+        image.ImageColor3 = GLYPH_COLOR
+        image.ZIndex = 1
+    end
+
     -- ---------- Область с текстом ----------
     local informationFrame = Instance.new("Frame")
     informationFrame.Name = "informationFrame"
     informationFrame.Parent = templateFrame
     informationFrame.BackgroundTransparency = 1
-    informationFrame.Position = UDim2.new(0, icon and 69 or 16, 0, 0)
-    informationFrame.Size = UDim2.new(1, icon and -105 or -52, 1, 0)
+    informationFrame.Position = UDim2.new(0, icon and 50 or 16, 0, 0)
+    informationFrame.Size = UDim2.new(1, icon and -86 or -52, 1, 0)
 
     local headingText = Instance.new("TextLabel")
     headingText.Name = "headingText"
@@ -211,7 +210,7 @@ local function createNotificationTemplate(name, bgColor, severityColor, icon, de
     bodyText.TextTruncate = Enum.TextTruncate.AtEnd
     bodyText.ClipsDescendants = true
 
-    -- ---------- Кнопка закрытия (круглая, проявляется при наведении) ----------
+    -- ---------- Кнопка закрытия (без лишних hover-анимаций) ----------
     local closeButton = Instance.new("ImageButton")
     closeButton.Name = "closeButton"
     closeButton.Parent = templateFrame
@@ -409,17 +408,7 @@ function Notification.new(notifType, heading, body, autoRemove, autoRemoveTime, 
         closeNotif()
     end)
 
-    -- Hover-эффект кнопки закрытия (как на macOS — проявляется при наведении)
-    notif.templateFrame.closeButton.MouseEnter:Connect(function()
-        if notif and notif.Parent then
-            ts:Create(notif.templateFrame.closeButton, HOVER_TWEEN, {ImageTransparency = 0, BackgroundTransparency = 0.8}):Play()
-        end
-    end)
-    notif.templateFrame.closeButton.MouseLeave:Connect(function()
-        if notif and notif.Parent then
-            ts:Create(notif.templateFrame.closeButton, HOVER_TWEEN, {ImageTransparency = 0.35, BackgroundTransparency = 0.92}):Play()
-        end
-    end)
+    -- УБРАНО: все hover-анимации для кнопки закрытия (просто статичная кнопка)
 
     -- Добавляем в контейнер и анимируем
     notif.Parent = notifsHolderFrame
@@ -494,24 +483,16 @@ function Notification:changeColor(primary, secondary, textColor)
         templateFrame.severityFrame.BackgroundColor3 = secondary
         templateFrame.closeButton.ImageColor3 = secondary
 
-        -- squircle-бейдж перекрашивается в акцентный цвет
-        local iconBadge = templateFrame:FindFirstChild("iconBadge")
-        if iconBadge then
-            iconBadge.BackgroundColor3 = secondary
-        end
-
         -- прогресс-бар тоже в акцентный цвет
         local progressBar = templateFrame:FindFirstChild("progressBar")
         if progressBar then
             progressBar.BackgroundColor3 = secondary
         end
 
-        -- ============================================================
-        -- ИСПРАВЛЕНИЕ 4: Убрали перекрашивание иконки (осталась белой)
-        -- ============================================================
+        -- совместимость со старой структурой (иконка прямо в templateFrame)
         local image = templateFrame:FindFirstChild("image")
         if image and image:IsA("ImageLabel") then
-            image.ImageColor3 = GLYPH_COLOR -- оставляем белый, чтобы не сливалась с фоном
+            image.ImageColor3 = GLYPH_COLOR -- всегда белая, без перекрашивания
         end
     end
 
