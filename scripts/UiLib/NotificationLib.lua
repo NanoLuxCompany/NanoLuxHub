@@ -270,7 +270,7 @@ local successTemplate = createNotificationTemplate(
     "success",
     CARD_COLOR,
     IOS_GREEN,
-    "rbxassetid://5578470925",
+    "rbxassetid://5578470911",
     "Успех"
 )
 
@@ -278,7 +278,7 @@ local warningTemplate = createNotificationTemplate(
     "warning",
     CARD_COLOR,
     IOS_YELLOW,
-    "rbxassetid://71455947433839",
+    "rbxassetid://71503984286896",
     "Предупреждение"
 )
 
