@@ -1,22 +1,10 @@
 --[[
 	╔══════════════════════════════════════════════════════════════════════╗
-	║                     AURA · NOTIFICATIONS  v2.2                       ║
-	║        Полностью переписанная версия JxereasNotifications            ║
+	║                     AURA · NOTIFICATIONS  v2.2 FIXED                 ║
+	║   FIX: Убран Fade (текст виден сразу), убран UIGradient,             ║
+	║        заменены шрифты на SourceSans (работает везде).               ║
 	╠══════════════════════════════════════════════════════════════════════╣
-	║  ✦ Появление: slide из-за экрана + поп иконки + блик (без зависимости║
-	║    от альфа-твинов — видимость не зависит от анимаций)               ║
-	║  ✦ Стек плавно "подтягивается" при закрытии                          ║
-	║  ✦ Прогресс-бар времени жизни с паузой при наведении курсора         ║
-	║  ✦ Всплывающая иконка в цветном "чипе", свечение акцентной полоски   ║
-	║  ✦ Мягкие тени, градиенты фона, аккуратная обводка                   ║
-	║  ✦ Тёмная / светлая темы, звуки, лимит одновременных уведомлений     ║
-	║  ✦ 100% обратная совместимость со СТАРЫМ API                         ║
-	║  ✦ v2.2: убран механизм "создать прозрачным → проявить твинами".     ║
-	║    Контент opaque с рождения + страховочный снап финальных состояний ║
-	║    через 0.75с — текст больше НЕ МОЖЕТ "залипнуть" до удаления.      ║
-	║    Красивые альфа-фейды включаются флагом Config.Fade = true.        ║
-	╠══════════════════════════════════════════════════════════════════════╣
-	║  СТАРЫЙ ВЫЗОВ (как раньше — ничего менять не нужно):                 ║
+	║  СТАРЫЙ ВЫЗОВ:                                                        ║
 	║    local n = Notify.new("Success", "Готово", "Скрипт загружен.",     ║
 	║                         true, 5, function() print("закрыто") end)    ║
 	║                                                                      ║
@@ -26,21 +14,8 @@
 	║        Title    = "Обновление",      -- message                      ║
 	║        Text     = "Доступна новая версия меню.",                     ║
 	║        Duration = 6,                 -- сек; nil = висеть вечно      ║
-	║        Icon     = "rbxassetid://…",  -- опционально, своя иконка     ║
-	║        Accent   = Color3.fromRGB(255, 120, 200),  -- свой цвет       ║
 	║        Callback = function() end,                                    ║
 	║    })                                                                ║
-	║                                                                      ║
-	║  МЕТОДЫ ОБЪЕКТА:                                                     ║
-	║    n:changeHeading("…")   n:changeBody("…")    n:delete()            ║
-	║    n:deleteTimeout(3)     n:changeColor(primary, secondary, text)    ║
-	║    n:Update({ Title = "…", Text = "…" })                             ║
-	║                                                                      ║
-	║  МЕТОДЫ МОДУЛЯ:                                                      ║
-	║    Notify.ClearAll()              -- убрать все                      ║
-	║    Notify.SetPosition("TopRight") -- BottomRight / TopRight          ║
-	║    Notify.SetTheme("Light")       -- тема для НОВЫХ уведомлений      ║
-	║    Notify.Config.MaxVisible = 8   -- и другие настройки              ║
 	╚══════════════════════════════════════════════════════════════════════╝
 ]]
 
@@ -68,9 +43,8 @@ local Config = {
 	HoverPause      = true,          -- пауза таймера при наведении
 	Sounds          = true,          -- звуки (id — в TypePresets.Sound)
 	SoundVolume     = 0.35,
-	-- true  = красивые альфа-фейды появления/исчезновения
-	-- false = только слайд (100% надёжно в любых средах/экзекьюторах)
-	Fade            = true,
+	-- ВАЖНО: false = только слайд, без альфа-прозрачности (текст ВИДЕН всегда)
+	Fade            = false,         
 }
 Notification.Config = Config
 
@@ -262,8 +236,6 @@ local function getPreset()
 	return Positions[Config.Position] or Positions.BottomRight
 end
 
--- Плавно расставляет все уведомления по своим слотам.
--- skipTween — элемент, который сам себя анимированно "заедет".
 local function layoutStack(skipTween)
 	local preset = getPreset()
 	local offset = 0
@@ -287,12 +259,10 @@ end
 
 --====================================================================--
 --                     Ф А Б Р И К А   К А Р Т О Ч К И                 --
---                       (всё создаётся ВИДИМЫМ)                         --
 --====================================================================--
 local function createCard(theme, accent, iconId)
 	local preset = getPreset()
 
-	-- внешний "слот" (прозрачный), им двигает стек
 	local holder = new("Frame", {
 		Name = "slot",
 		AnchorPoint = preset.CardAP,
@@ -301,7 +271,6 @@ local function createCard(theme, accent, iconId)
 		BorderSizePixel = 0,
 	})
 
-	-- мягкая тень
 	local shadow
 	if Config.Shadows then
 		shadow = new("ImageLabel", {
@@ -319,7 +288,7 @@ local function createCard(theme, accent, iconId)
 		}, holder)
 	end
 
-	-- сама карточка
+	-- УБРАН UIGradient! Он мешал отображению текста. Используем чистый цвет.
 	local card = new("Frame", {
 		Name = "card",
 		AnchorPoint = Vector2.new(0.5, 0.5),
@@ -332,19 +301,13 @@ local function createCard(theme, accent, iconId)
 		ZIndex = 2,
 	}, holder)
 	new("UICorner", { CornerRadius = UDim.new(0, 12) }, card)
-	local gradient = new("UIGradient", {
-		Color = ColorSequence.new(theme.Background, theme.Background2),
-		Rotation = 100,
-	}, card)
 	local stroke = new("UIStroke", {
 		Color = theme.StrokeColor,
 		Transparency = theme.StrokeTransp,
 		Thickness = 1,
 		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
 	}, card)
-	local scale = new("UIScale", { Scale = 1 }, card)
 
-	-- свечение вокруг акцентной полоски
 	local glow = new("Frame", {
 		Name = "glow",
 		AnchorPoint = Vector2.new(0, 0.5),
@@ -356,7 +319,6 @@ local function createCard(theme, accent, iconId)
 	}, card)
 	new("UICorner", { CornerRadius = UDim.new(1, 0) }, glow)
 
-	-- акцентная полоска
 	local accentBar = new("Frame", {
 		Name = "accent",
 		AnchorPoint = Vector2.new(0, 0.5),
@@ -368,7 +330,6 @@ local function createCard(theme, accent, iconId)
 	}, card)
 	new("UICorner", { CornerRadius = UDim.new(1, 0) }, accentBar)
 
-	-- "чип" с иконкой
 	local chip = new("Frame", {
 		Name = "chip",
 		AnchorPoint = Vector2.new(0, 0.5),
@@ -385,7 +346,6 @@ local function createCard(theme, accent, iconId)
 		Thickness = 1,
 		ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
 	}, chip)
-	local chipScale = new("UIScale", { Scale = 1 }, chip)
 	local icon = new("ImageLabel", {
 		Name = "icon",
 		AnchorPoint = Vector2.new(0.5, 0.5),
@@ -397,7 +357,6 @@ local function createCard(theme, accent, iconId)
 		ImageTransparency = 0,
 	}, chip)
 
-	-- ИСПРАВЛЕННАЯ ЧАСТЬ: текст с правильным позиционированием
 	local content = new("Frame", {
 		Name = "content",
 		AnchorPoint = Vector2.new(0, 0.5),
@@ -406,14 +365,14 @@ local function createCard(theme, accent, iconId)
 		BackgroundTransparency = 1,
 	}, card)
 
-	-- Заголовок
+	-- Заменил шрифт на SourceSansBold / SourceSans (работает в 100% экзекьюторах)
 	local title = new("TextLabel", {
 		Name = "title",
 		Size = UDim2.new(1, 0, 0, 18),
 		Position = UDim2.new(0, 0, 0, 0),
 		BackgroundTransparency = 1,
-		Font = Enum.Font.GothamBold,
-		TextSize = 14,
+		Font = Enum.Font.SourceSansBold, -- FIX
+		TextSize = 15,                   -- FIX
 		TextColor3 = theme.Title,
 		TextTransparency = 0,
 		TextXAlignment = Enum.TextXAlignment.Left,
@@ -421,14 +380,13 @@ local function createCard(theme, accent, iconId)
 		Text = "",
 	}, content)
 
-	-- Текст сообщения
 	local body = new("TextLabel", {
 		Name = "body",
-		Position = UDim2.new(0, 0, 0, 20),
-		Size = UDim2.new(1, 0, 1, -20),
+		Position = UDim2.new(0, 0, 0, 21),
+		Size = UDim2.new(1, 0, 1, -21),
 		BackgroundTransparency = 1,
-		Font = Enum.Font.Gotham,
-		TextSize = 13,
+		Font = Enum.Font.SourceSans,     -- FIX
+		TextSize = 14,                   -- FIX
 		TextColor3 = theme.Body,
 		TextTransparency = 0,
 		TextXAlignment = Enum.TextXAlignment.Left,
@@ -439,7 +397,6 @@ local function createCard(theme, accent, iconId)
 		Text = "",
 	}, content)
 
-	-- кнопка закрытия
 	local closeBtn = new("ImageButton", {
 		Name = "close",
 		AnchorPoint = Vector2.new(1, 0),
@@ -453,7 +410,6 @@ local function createCard(theme, accent, iconId)
 		ZIndex = 3,
 	}, card)
 
-	-- прогресс-бар авто-закрытия
 	local track = new("Frame", {
 		Name = "track",
 		AnchorPoint = Vector2.new(0, 1),
@@ -474,7 +430,6 @@ local function createCard(theme, accent, iconId)
 	}, track)
 	new("UICorner", { CornerRadius = UDim.new(1, 0) }, fill)
 
-	-- блик (пробегает при появлении)
 	local sheen
 	if Config.Sheen then
 		sheen = new("Frame", {
@@ -501,13 +456,10 @@ local function createCard(theme, accent, iconId)
 		holder    = holder,
 		shadow    = shadow,
 		card      = card,
-		gradient  = gradient,
 		stroke    = stroke,
-		scale     = scale,
 		glow      = glow,
 		accentBar = accentBar,
 		chip      = chip,
-		chipScale = chipScale,
 		icon      = icon,
 		title     = title,
 		body      = body,
@@ -591,8 +543,6 @@ function Notification:_resumeTimer()
 	end)
 end
 
--- Страховочная сеть: даже если среда съела ЛЮБОЙ твин,
--- через 0.75с всё гарантированно становится в финальное состояние.
 function Notification:_snapFinalState(delayT)
 	task.delay(delayT + 0.75, function()
 		if self._closed then return end
@@ -601,8 +551,7 @@ function Notification:_snapFinalState(delayT)
 				self._holder.Position = self._targetPos
 			end
 		end)
-		pcall(function() self._refs.scale.Scale = 1 end)
-		pcall(function() self._refs.chipScale.Scale = 1 end)
+		pcall(function() self._refs.card.Size = UDim2.new(1, 0, 1, 0) end) -- страховка размера
 		if Config.Fade and self._fades then
 			applyFadeValues(self._fades, true)
 		end
@@ -612,7 +561,6 @@ end
 function Notification:_enter()
 	local refs = self._refs
 
-	-- каскадная задержка, если уведомления летят пачкой
 	local stagger = 0
 	local now = os.clock()
 	for _, it in ipairs(Active) do
@@ -626,37 +574,20 @@ function Notification:_enter()
 	task.delay(delayT, function()
 		if self._closed then return end
 
-		-- выезд из-за экрана на своё место
+		-- Слайд из-за экрана
 		tween(self._holder,
 			TweenInfo.new(0.55, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
 			{ Position = self._targetPos })
 
-		-- лёгкий "подпрыг" масштаба карточки
-		pcall(function() refs.scale.Scale = 0.92 end)
-		tween(refs.scale,
-			TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-			{ Scale = 1 })
-
-		-- всплытие иконки с пружинкой
-		task.delay(0.12, function()
+		-- Страховка текста (принудительно показывает)
+		task.delay(0.1, function()
 			if self._closed then return end
-			pcall(function() refs.chipScale.Scale = 0 end)
-			tween(refs.chipScale,
-				TweenInfo.new(0.45, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-				{ Scale = 1 })
+			pcall(function() refs.title.TextTransparency = 0 end)
+			pcall(function() refs.body.TextTransparency = 0 end)
+			pcall(function() refs.icon.ImageTransparency = 0 end)
 		end)
 
-		-- опциональный альфа-фейд
-		if Config.Fade and self._fades then
-			applyFadeValues(self._fades, false) -- спрятать...
-			for _, f in ipairs(self._fades) do
-				tween(f[1],
-					TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-					{ [f[2]] = f[3] }) -- ...и проявить
-			end
-		end
-
-		-- блик через карточку
+		-- Блик
 		if refs.sheen then
 			local sheen = refs.sheen
 			task.delay(0.15, function()
@@ -676,7 +607,6 @@ function Notification:_enter()
 		end
 	end)
 
-	-- страховка: финальное состояние гарантировано
 	self:_snapFinalState(delayT)
 end
 
@@ -697,7 +627,6 @@ function Notification:_exit(fast, skipLayout)
 	end
 	self._conns = {}
 
-	-- убрать из стека и подтянуть остальные
 	for i, it in ipairs(Active) do
 		if it == self then
 			table.remove(Active, i)
@@ -708,7 +637,6 @@ function Notification:_exit(fast, skipLayout)
 		layoutStack()
 	end
 
-	-- уход вправо
 	local dur = fast and 0.22 or 0.32
 	local yPos = self._holder.Position
 	local outTarget = UDim2.new(1, 130, yPos.Y.Scale, yPos.Y.Offset)
@@ -716,16 +644,6 @@ function Notification:_exit(fast, skipLayout)
 		TweenInfo.new(dur, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
 		{ Position = outTarget })
 
-	-- опциональный фейд-аут
-	if Config.Fade and self._fades then
-		for _, f in ipairs(self._fades) do
-			tween(f[1],
-				TweenInfo.new(dur, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
-				{ [f[2]] = 1 })
-		end
-	end
-
-	-- колбэк и уничтожение — после анимации, как в оригинале
 	local holder = self._holder
 	local cb = self._callback
 	task.delay(dur + 0.08, function()
@@ -742,10 +660,6 @@ end
 
 --====================================================================--
 --                С О З Д А Н И Е   У В Е Д О М Л Е Н И Я              --
---                                                                     --
---  Поддерживаются ДВА формата вызова:                                 --
---    Notification.new(type, heading, body, autoRemove, time, cb)      --
---    Notification.new({ Type=…, Title=…, Text=…, Duration=… })        --
 --====================================================================--
 function Notification.new(a1, a2, a3, a4, a5, a6)
 	local opts
@@ -770,7 +684,6 @@ function Notification.new(a1, a2, a3, a4, a5, a6)
 	local accent = (typeof(opts.Accent) == "Color3") and opts.Accent or preset.Accent
 	local iconId = (type(opts.Icon) == "string") and opts.Icon or preset.Icon
 
-	-- длительность / авто-удаление (совместимо со старым API)
 	local duration = opts.Duration
 	if duration == false then duration = nil end
 	if duration == nil and opts.AutoRemove then
@@ -780,7 +693,6 @@ function Notification.new(a1, a2, a3, a4, a5, a6)
 		duration = nil
 	end
 
-	-- объект
 	local self = setmetatable({}, Notification)
 	self._closed    = false
 	self._theme     = theme
@@ -789,17 +701,20 @@ function Notification.new(a1, a2, a3, a4, a5, a6)
 	self._callback  = (type(opts.Callback) == "function") and opts.Callback or nil
 	self._remaining = nil
 
-	-- ВАЖНО: всё создаётся сразу видимым.
-	-- Карточка стартует ЗА экраном, поэтому "отсутствие fade" не видно глазу.
 	local refs = createCard(theme, accent, iconId)
 	self._refs   = refs
 	self._holder = refs.holder
-	self.Instance = refs.holder -- совместимость со старым API
+	self.Instance = refs.holder
 
 	refs.title.Text = tostring(opts.Title or opts.Heading or preset.Title)
 	refs.body.Text  = tostring(opts.Text or opts.Body or "")
 
-	-- прогресс-бар нужен только если есть таймер
+	-- Сразу делаем текст видимым (исправление чёрных прямоугольников)
+	refs.title.TextTransparency = 0
+	refs.body.TextTransparency  = 0
+	refs.icon.ImageTransparency = 0
+	refs.closeBtn.ImageTransparency = 0
+
 	if duration and duration > 0 then
 		refs.track.Visible = true
 	end
@@ -808,26 +723,21 @@ function Notification.new(a1, a2, a3, a4, a5, a6)
 		self._fades = collectFades(refs, theme)
 	end
 
-	-- регистрируем в стеке и считаем слот
 	table.insert(Active, self)
 	layoutStack(self)
 
-	-- стартовая позиция — за правым краем на высоте своего слота
 	refs.holder.Position = UDim2.new(1, 120, self._targetPos.Y.Scale, self._targetPos.Y.Offset)
 	refs.holder.Parent = holderFrame
 
-	-- лимит одновременно видимых: старые быстро уезжают
 	while #Active > Config.MaxVisible do
 		Active[1]:_exit(true, true)
 	end
 	layoutStack()
 
-	-- таймер авто-закрытия
 	if duration and duration > 0 then
 		self:_startTimer(duration)
 	end
 
-	-- наведение: подсветка + пауза таймера
 	table.insert(self._conns, refs.holder.MouseEnter:Connect(function()
 		if self._closed then return end
 		tween(refs.stroke, TweenInfo.new(0.15), { Transparency = math.max(theme.StrokeTransp - 0.14, 0) })
@@ -845,12 +755,10 @@ function Notification.new(a1, a2, a3, a4, a5, a6)
 		end
 	end))
 
-	-- кнопка закрытия
 	table.insert(self._conns, refs.closeBtn.MouseButton1Click:Connect(function()
 		self:delete()
 	end))
 
-	-- поехали
 	self:_enter()
 	playSound(opts.Sound or preset.Sound)
 
@@ -908,9 +816,6 @@ function Notification:changeColor(primary, secondary, textColor)
 
 	if typeof(primary) == "Color3" then
 		refs.card.BackgroundColor3 = primary
-		if refs.gradient then
-			refs.gradient.Color = ColorSequence.new(primary, lerpColor(primary, Color3.new(1, 1, 1), 0.06))
-		end
 		refs.chip.BackgroundColor3 = lerpColor(self._accent, primary, 0.86)
 	end
 
