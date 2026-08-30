@@ -254,7 +254,7 @@ local errorTemplate = createNotificationTemplate(
     "error",
     CARD_COLOR,
     IOS_RED,
-    "rbxassetid://125912924580656",
+    "rbxassetid://86000033190397",
     "Ошибка"
 )
 
@@ -262,7 +262,7 @@ local infoTemplate = createNotificationTemplate(
     "info",
     CARD_COLOR,
     IOS_BLUE,
-    "rbxassetid://5832745520",
+    "rbxassetid://5832745500",
     "Информация"
 )
 
